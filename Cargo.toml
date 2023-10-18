@@ -1,6 +1,7 @@
 [workspace]
-
 members = [
     "injector",
-    "moros"
+    "encryption/encryption",
+    "encryption/encryption-procmacro",
+    "moros",
 ]
