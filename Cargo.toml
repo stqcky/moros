@@ -3,5 +3,11 @@ members = [
     "injector",
     "encryption/encryption",
     "encryption/encryption-procmacro",
+    "cstruct",
+    "sdk",
     "moros",
 ]
+
+[profile.release]
+debug = false
+strip = true

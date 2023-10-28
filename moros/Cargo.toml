@@ -6,12 +6,10 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib"]
 
-[profile.release]
-debug = false
-strip = true
-
 [dependencies]
 encryption = { path = "../encryption/encryption" }
+schema = { path = "../schema" }
+cstruct = { path = "../cstruct" }
 iced-x86 = "1.20.0"
 litcrypt = "0.3.0"
 log = "0.4.20"
@@ -19,6 +17,10 @@ pretty_env_logger = "0.5.0"
 thiserror = "1.0.49"
 lazy_static = "1.4.0"
 dotenvy_macro = "0.15.7"
+anyhow = "1.0.75"
+convert_case = "0.6.0"
+chrono = "0.4.31"
+regex = "1.10.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
