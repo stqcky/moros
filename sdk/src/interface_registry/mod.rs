@@ -26,7 +26,7 @@ impl InterfaceRegistry<'_> {
         })
     }
 
-    pub fn create<T>(&mut self, name: &str) -> anyhow::Result<&'static T> {
+    pub fn create<'a, T>(&mut self, name: &str) -> anyhow::Result<&'a T> {
         let interface = self
             .find(name)
             .ok_or(anyhow!("{}", x!("interface not found")))?;

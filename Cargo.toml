@@ -4,6 +4,7 @@ members = [
     "encryption/encryption",
     "encryption/encryption-procmacro",
     "cstruct",
+    "schema",
     "sdk",
     "moros",
 ]

@@ -3,15 +3,15 @@ use std::fmt::Display;
 use convert_case::{Case, Casing};
 use regex::Regex;
 
-use crate::sdk::ENGINE_CLIENT;
+use crate::interfaces::schema_system::schema_system::{AtomicCategory, SchemaType, TypeCategory};
 
-pub struct Module {
-    classes: Vec<Class>,
+pub struct Scope<'a> {
+    classes: Vec<Class<'a>>,
     enums: Vec<Enum>,
     name: String,
 }
 
-impl Module {
+impl<'a> Scope<'a> {
     pub fn new(name: &str) -> Self {
         Self {
             name: String::from(name),
@@ -21,17 +21,29 @@ impl Module {
     }
 
     pub fn add_enum(&mut self, enu: Enum) {
+        if let Some(existing) = self.enums.iter().position(|x| x.rust_name == enu.rust_name) {
+            self.enums.swap_remove(existing); // this might cause problems later on.
+        };
+
         self.enums.push(enu);
     }
 
-    pub fn add_class(&mut self, class: Class) {
+    pub fn add_class(&mut self, class: Class<'a>) {
+        if let Some(existing) = self
+            .classes
+            .iter()
+            .position(|x| x.rust_name == class.rust_name)
+        {
+            self.classes.swap_remove(existing); // this might cause problems later on.
+        };
+
         self.classes.push(class);
     }
 }
 
-impl Display for Module {
+impl Display for Scope<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "// module {}\n", self.name)?;
+        write!(f, "// scope {}\n", self.name)?;
         write!(f, "// {}\n\n", chrono::Utc::now())?;
 
         for enu in self.enums.iter() {
@@ -46,50 +58,79 @@ impl Display for Module {
     }
 }
 
-pub struct Class {
-    fields: Vec<ClassField>,
+pub struct Class<'a> {
+    fields: Vec<ClassField<'a>>,
     rust_name: String,
     name: String,
+    scope: String,
 }
 
-const CLASS_PREFIXES: &'static [&'static str] = &["C_CSGO_", "CCSGO", "C_", "C"];
-const CLASS_SUFFIXES: &'static [&'static str] = &["_t"];
-
-impl Class {
-    pub fn new(name: &str) -> Self {
+impl<'a> Class<'a> {
+    pub fn new(name: &str, scope: &str) -> Self {
         Self {
             rust_name: Self::rustify_name(name),
             name: String::from(name),
             fields: vec![],
+            scope: String::from(scope),
         }
     }
 
-    pub fn add_field(&mut self, field: ClassField) {
+    pub fn add_field(&mut self, mut field: ClassField<'a>) {
+        if let Some(existing_idx) = self
+            .fields
+            .iter()
+            .position(|x| x.rust_name == field.rust_name)
+        {
+            let existing = &mut self.fields[existing_idx];
+
+            let new_existing_name = ClassField::rustify_name(&existing.name.replace("m_", ""));
+            let new_new_name = ClassField::rustify_name(&field.name.replace("m_", ""));
+
+            if new_existing_name != new_new_name {
+                existing.rust_name = new_existing_name;
+                field.rust_name = new_new_name;
+            } else {
+                self.fields.swap_remove(existing_idx);
+            }
+        }
+
         self.fields.push(field);
     }
 
     fn rustify_name(name: &str) -> String {
         let mut name = String::from(name);
 
-        name = strip_prefixes(name, CLASS_PREFIXES.iter());
-        name = strip_suffixes(name, CLASS_SUFFIXES.iter());
+        let re = Regex::new(r#"(C_CSGO_|CCSGO|C_|C)[A-Z]"#).expect("could not create regex");
+
+        if let Some(captures) = re.captures(&name) {
+            if let Some(prefix) = captures.get(1) {
+                if let Some(stripped) = name.strip_prefix(prefix.as_str()) {
+                    name = stripped.to_string();
+                }
+            }
+        }
+
+        if let Some(stripped) = name.strip_suffix("_t") {
+            name = stripped.to_string();
+        }
+
+        name = name.replace("::", "");
 
         name.to_case(convert_case::Case::UpperCamel)
     }
 }
 
-impl Display for Class {
+impl Display for Class<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "#[repr(C)]\n")?;
-        write!(f, "pub struct {} {{}}", self.rust_name)?;
+        writeln!(f, "#[derive(Schema)]")?;
+        writeln!(f, r#"#[scope("{}")]"#, self.scope)?;
+        write!(f, "pub struct {} {{", self.rust_name)?;
 
         if self.fields.len() > 0 {
             write!(f, "\n")?;
 
-            write!(f, "impl {} {{", self.rust_name)?;
-
             for field in self.fields.iter() {
-                write!(f, "\t{},\n", field)?;
+                write!(f, "{},\n", field)?;
             }
         }
 
@@ -97,42 +138,19 @@ impl Display for Class {
     }
 }
 
-struct Pawn {}
-
-fn get_field_offset(class: &str, field: &str) -> i32 {
-    0
-}
-
-impl Pawn {
-    pub fn health(&self) -> i32 {
-        lazy_static::lazy_static! {
-            static ref OFFSET: isize = get_field_offset("CSPlayerPawn", "m_iHealth") as isize;
-        }
-
-        unsafe {
-            std::mem::transmute::<_, *const i32>(
-                std::mem::transmute::<_, *const u8>(self).offset(*OFFSET),
-            )
-            .read()
-        }
-    }
-}
-
-const FIELD_SUFFIXES: &'static [&'static str] = &["_t"];
-
-pub struct ClassField {
+pub struct ClassField<'a> {
     rust_name: String,
     name: String,
-    offset: i32,
-    ty: String,
+    class: String,
+    ty: &'a SchemaType<'a>,
 }
 
-impl ClassField {
-    pub fn new(name: &str, ty: String, offset: i32) -> Self {
+impl<'a> ClassField<'a> {
+    pub fn new(class: &str, name: &str, ty: &'a SchemaType<'_>) -> Self {
         Self {
             rust_name: Self::rustify_name(name),
             name: String::from(name),
-            offset,
+            class: String::from(class),
             ty,
         }
     }
@@ -145,39 +163,167 @@ impl ClassField {
 
         if let Some(captures) = re.captures(&name) {
             if let Some(prefix) = captures.get(1) {
-                name = name.replace(prefix.as_str(), "");
+                if let Some(stripped) = name.strip_prefix(prefix.as_str()) {
+                    name = stripped.to_string();
+                }
             }
         } else {
-            name = name.replace("m_", "");
+            if let Some(stripped) = name.strip_prefix("m_") {
+                name = stripped.to_string();
+            }
         }
 
-        name = strip_suffixes(name, FIELD_SUFFIXES.iter());
+        if let Some(stripped) = name.strip_suffix("_t") {
+            name = stripped.to_string();
+        }
 
-        name.to_case(Case::Snake)
+        name = name.to_case(Case::Snake);
+
+        match name.as_ref() {
+            "loop" => "r#loop".to_string(),
+            "break" => "r#break".to_string(),
+            "type" => "ty".to_string(),
+            "fn" => "func".to_string(),
+            _ => name,
+        }
+    }
+
+    fn rustify_type(ty: &SchemaType<'_>) -> String {
+        match ty.type_category {
+            TypeCategory::Builtin => match ty.get_name().as_ref() {
+                "float32" => "f32",
+                "float64" => "f64",
+
+                "int8" => "i8",
+                "int16" => "i16",
+                "int32" => "i32",
+                "int64" => "i64",
+
+                "uint8" => "u8",
+                "uint16" => "u16",
+                "uint32" => "u32",
+                "uint64" => "u64",
+
+                "bool" => "bool",
+                "char" => "std::ffi::c_char",
+                _ => {
+                    log::error!("unknown builtin type: {}", ty.get_name());
+
+                    "unknown builtin type"
+                }
+            }
+            .to_string(),
+            TypeCategory::Pointer => {
+                let ty = ty
+                    .value
+                    .get_schema_type()
+                    .expect("could not get pointer type");
+
+                format!("*const {}", Self::rustify_type(ty))
+            }
+            TypeCategory::Bitfield => "u8".to_string(),
+            TypeCategory::FixedArray => {
+                let array = unsafe { &ty.value.array };
+                let array_type = array.get_element_type().expect("could not get array type");
+
+                format!("[{}; {}]", Self::rustify_type(array_type), array.size)
+            }
+            TypeCategory::Atomic => match ty.atomic_category {
+                AtomicCategory::Basic => Class::rustify_name(&ty.get_name()),
+                AtomicCategory::T => {
+                    let atomic_t = unsafe { &ty.value.atomic_t };
+
+                    let template = atomic_t
+                        .get_template_typename()
+                        .expect("could not get template");
+
+                    let ty_name = ty.get_name();
+
+                    let (base, _) = ty_name
+                        .split_once("<")
+                        .expect("could not get template base");
+
+                    format!(
+                        "{}<{}>",
+                        Class::rustify_name(base),
+                        Self::rustify_type(template)
+                    )
+                }
+                AtomicCategory::CollectionOfT => {
+                    let atomic_t = unsafe { &ty.value.atomic_t };
+                    let ty = atomic_t
+                        .get_template_typename()
+                        .expect("could not get collection of T type");
+
+                    format!("UtlVector<{}>", Self::rustify_type(ty))
+                }
+                AtomicCategory::TT => {
+                    let atomic_tt = unsafe { &ty.value.atomic_tt };
+
+                    let Some((template1, template2)) = atomic_tt.templates() else {
+                        log::error!("could not get atomic TT templates");
+                        return "unknown atomic tt".to_string()
+                    };
+
+                    let ty_name = ty.get_name();
+
+                    let (base, _) = ty_name
+                        .split_once("<")
+                        .expect("could not get template base");
+
+                    format!(
+                        "{}<{}, {}>",
+                        Class::rustify_name(base),
+                        Self::rustify_type(template1),
+                        Self::rustify_type(template2)
+                    )
+                }
+                AtomicCategory::I => {
+                    log::error!("unknown atomic i: {}", ty.get_name());
+                    "unknown atomic i".to_string()
+                }
+                AtomicCategory::None => {
+                    log::error!("field type category is atomic but atomic category is none");
+                    "unknown none atomic".to_string()
+                }
+                AtomicCategory::Invalid => {
+                    log::error!("field type category is atomic but atomic category is none");
+                    "unknown invalid atomic".to_string()
+                }
+            },
+            TypeCategory::DeclaredClass => {
+                let class_info = ty.value.get_class_info().expect("could not get class info");
+
+                Class::rustify_name(&class_info.get_name())
+            }
+            TypeCategory::DeclaredEnum => {
+                let enum_info = ty.value.get_enum_info().expect("could not get enum info");
+
+                Enum::rustify_name(&enum_info.get_name())
+            }
+            TypeCategory::None => format!("unknown none: {}", ty.get_name()),
+        }
     }
 }
 
-impl Display for ClassField {
+impl Display for ClassField<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "pub {} /* {} {:#x} */: usize",
-            self.rust_name, self.ty, self.offset
-        )
+        writeln!(f, "\t#[field(\"{}\", \"{}\")]", self.class, self.name)?;
+        write!(f, "\t{}: {}", self.rust_name, Self::rustify_type(self.ty))
     }
 }
 
 pub struct Enum {
-    rust_name: String,
     name: String,
+    rust_name: String,
     variants: Vec<EnumVariant>,
 }
 
 impl Enum {
     pub fn new(name: &str) -> Self {
         Self {
-            rust_name: Self::rustify_name(name),
             name: String::from(name),
+            rust_name: Self::rustify_name(name),
             variants: vec![],
         }
     }
@@ -193,14 +339,17 @@ impl Enum {
             name = split.to_string();
         }
 
-        name = strip_suffixes(name, ["_t"].iter());
+        if let Some(stripped) = name.strip_suffix("_t") {
+            name = stripped.to_string();
+        }
+
         name.to_case(Case::UpperCamel)
     }
 }
 
 impl Display for Enum {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "enum {} /* {} */ {{", self.rust_name, self.name)?;
+        write!(f, "pub enum {} {{", self.rust_name)?;
 
         for variant in self.variants.iter() {
             write!(f, "\n\t{variant}")?;
@@ -212,14 +361,12 @@ impl Display for Enum {
 
 pub struct EnumVariant {
     rust_name: String,
-    name: String,
 }
 
 impl EnumVariant {
     pub fn new(name: &str) -> Self {
         Self {
             rust_name: Self::rustify_name(name),
-            name: String::from(name),
         }
     }
 
@@ -230,26 +377,6 @@ impl EnumVariant {
 
 impl Display for EnumVariant {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} /* {} */", self.rust_name, self.name)
+        write!(f, "{},", self.rust_name)
     }
-}
-
-fn strip_prefixes<'a>(name: String, prefixes: impl Iterator<Item = &'a &'a str>) -> String {
-    for prefix in prefixes {
-        if let Some(stripped) = name.strip_prefix(prefix) {
-            return stripped.to_string();
-        }
-    }
-
-    name
-}
-
-fn strip_suffixes<'a>(name: String, suffixes: impl Iterator<Item = &'a &'a str>) -> String {
-    for suffix in suffixes {
-        if let Some(stripped) = name.strip_suffix(suffix) {
-            return stripped.to_string();
-        }
-    }
-
-    name
 }

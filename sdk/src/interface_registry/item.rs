@@ -24,7 +24,7 @@ pub enum InstantiateInterfaceError {
 }
 
 impl InterfaceRegistryItem {
-    pub fn instantiate<T>(&self) -> Result<&'static T, InstantiateInterfaceError> {
+    pub fn instantiate<'a, T>(&self) -> Result<&'a T, InstantiateInterfaceError> {
         // 48 8D 05 F9 0D 05 00 | lea rax, [offset]
         // C3                   | ret
 

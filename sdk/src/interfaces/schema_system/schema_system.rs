@@ -1,15 +1,16 @@
-use crate::sdk::tier1::{utltshash::CUtlTSHash, utlvector::CUtlVector};
+use crate::tier1::{utltshash::UtlTSHash, utlvector::UtlVector};
 use cstruct::{vfunc, vmt, C};
 use std::{
     borrow::Cow,
     ffi::{c_char, c_void},
-    marker::PhantomData, mem::ManuallyDrop,
+    marker::PhantomData,
+    mem::ManuallyDrop,
 };
 
 #[vmt]
 pub struct SchemaSystem<'a> {
     __pad: [u8; 0x188],
-    pub type_scopes: CUtlVector<SchemaSystemTypeScope<'a>>,
+    pub type_scopes: UtlVector<SchemaSystemTypeScope<'a>>,
 }
 
 #[allow(unused_unsafe)]
@@ -28,6 +29,16 @@ impl<'a> SchemaSystem<'_> {
     pub fn find_type_scope_for_module(&self, module: &str) -> Option<&SchemaSystemTypeScope> {
         self.find_type_scope_for_module_vfunc(module, 0)
     }
+
+    pub fn find_offset(&self, module: &str, class: &str, field: &str) -> Option<i32> {
+        let type_scope = self.find_type_scope_for_module(module)?;
+
+        let class = type_scope.find_declared_class(class)?;
+
+        let field = class.fields().into_iter().find(|x| x.get_name() == field)?;
+
+        Some(field.single_inheritance_offset)
+    }
 }
 
 #[vmt]
@@ -37,9 +48,9 @@ pub struct SchemaSystemTypeScope<'a> {
     module_name: [c_char; 256],
 
     __pad1: [u8; 0x47e],
-    pub classes: CUtlTSHash<'a, *const SchemaClass<'a>>,
+    pub classes: UtlTSHash<'a, *const SchemaClass<'a>>,
     __pad2: [u8; 0x2808],
-    pub enums: CUtlTSHash<'a, *const SchemaEnum<'a>>,
+    pub enums: UtlTSHash<'a, *const SchemaEnum<'a>>,
 }
 
 impl<'a> SchemaSystemTypeScope<'a> {
@@ -64,7 +75,7 @@ impl<'a> SchemaSystemTypeScope<'a> {
 pub enum TypeCategory {
     Builtin,
     Pointer,
-    Butfield,
+    Bitfield,
     FixedArray,
     Atomic,
     DeclaredClass,
@@ -81,42 +92,65 @@ pub enum AtomicCategory {
     TT,
     I,
     None,
+    Invalid,
 }
 
 #[repr(C)]
-struct SchemaTypeArrayT<'a> {
-    size: u32,
+#[derive(C)]
+pub struct SchemaTypeArrayT<'a> {
+    pub size: u32,
     unknown: u32,
+
+    #[ptr]
     element_type: *const SchemaType<'a>,
 }
 
 #[repr(C)]
-struct SchemaTypeAtomicT<'a> {
+#[derive(C)]
+pub struct SchemaTypeAtomicT<'a> {
     gap: [u64; 2],
+
+    #[ptr]
     template_typename: *const SchemaType<'a>,
 }
 
 #[repr(C)]
-struct SchemaTypeAtomicTT<'a> {
+pub struct SchemaTypeAtomicTT<'a> {
     gap: [u64; 2],
     templates: [*const SchemaType<'a>; 2],
 }
 
+impl SchemaTypeAtomicTT<'_> {
+    pub fn templates(&self) -> Option<(&SchemaType, &SchemaType)> {
+        let template1 = unsafe { self.templates[0].as_ref() }?;
+        let template2 = unsafe { self.templates[1].as_ref() }?;
+
+        Some((template1, template2))
+    }
+}
+
 #[repr(C)]
-struct SchemaTypeAtomicI {
+pub struct SchemaTypeAtomicI {
     gap: [u64; 2],
     integer: u64,
 }
 
 #[repr(C)]
+#[derive(C)]
 pub union SchemaTypeUnion<'a> {
+    #[ptr]
     schema_type: *const SchemaType<'a>,
+
+    #[ptr]
     class_info: *const SchemaClassInfo<'a>,
+
+    #[ptr]
     enum_info: *const SchemaEnum<'a>,
-    array: ManuallyDrop<SchemaTypeArrayT<'a>>,
-    atomic_t: ManuallyDrop<SchemaTypeAtomicT<'a>>,
-    atomic_tt: ManuallyDrop<SchemaTypeAtomicTT<'a>>,
-    atomic_i: ManuallyDrop<SchemaTypeAtomicI>,
+
+    pub array: ManuallyDrop<SchemaTypeArrayT<'a>>,
+    pub atomic_t: ManuallyDrop<SchemaTypeAtomicT<'a>>,
+    pub atomic_tt: ManuallyDrop<SchemaTypeAtomicTT<'a>>,
+    pub atomic_i: ManuallyDrop<SchemaTypeAtomicI>,
 }
 
 #[vmt]
@@ -129,9 +163,9 @@ pub struct SchemaType<'a> {
     type_scope: *const SchemaSystemTypeScope<'a>,
 
     pub type_category: TypeCategory,
-    pub atomic_category: u8,
+    pub atomic_category: AtomicCategory,
 
-    value: SchemaTypeUnion<'a>
+    pub value: SchemaTypeUnion<'a>,
 }
 
 #[repr(C)]

@@ -10,18 +10,20 @@ pub fn cstruct_impl(input: TokenStream) -> TokenStream {
     let generics = input.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    if let syn::Data::Struct(data) = input.data {
-        let getters = generate_getters(data.fields);
+    let fields: Fields = match input.data {
+        syn::Data::Struct(data) => data.fields,
+        syn::Data::Union(data) => data.fields.into(),
+        syn::Data::Enum(_) => panic!("#[derive(C)] cannot be applied to an enum"),
+    };
 
-        quote! {
-            impl #impl_generics #ident #ty_generics #where_clause {
-                #(#getters)*
-            }
+    let getters = generate_getters(fields);
+
+    quote! {
+        impl #impl_generics #ident #ty_generics #where_clause {
+            #(#getters)*
         }
-        .into()
-    } else {
-        panic!("#[derive(C)] can only be applied to structs");
     }
+    .into()
 }
 
 fn generate_getters(fields: Fields) -> Vec<TokenStream2> {

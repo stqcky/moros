@@ -1,18 +1,8 @@
-use crate::sdk::interfaces::schema_system::schema_system::{
-    SchemaClassInfo, SchemaEnum, SchemaSystem, SchemaSystemTypeScope,
+use crate::interfaces::schema_system::schema_system::{
+    SchemaClassInfo, SchemaSystem, SchemaSystemTypeScope,
 };
 
-use super::sdk_builder::{Class, ClassField, Enum, Module};
-
-fn get_enum_type<'a>(enu: &SchemaEnum) -> &'a str {
-    match enu.alignment {
-        1 => "u8",
-        2 => "u16",
-        4 => "u32",
-        8 => "u64",
-        _ => "unknown",
-    }
-}
+use super::sdk_builder::{Class, ClassField, Enum, Scope};
 
 fn get_class_inheritance<'a>(mut class: &'a SchemaClassInfo) -> Vec<&'a SchemaClassInfo<'a>> {
     let mut classes = vec![];
@@ -36,8 +26,8 @@ fn get_class_inheritance<'a>(mut class: &'a SchemaClassInfo) -> Vec<&'a SchemaCl
     classes
 }
 
-fn dump_type_scope(type_scope: &SchemaSystemTypeScope) {
-    let mut module = Module::new(&type_scope.get_module_name());
+fn dump_type_scope(type_scope: &SchemaSystemTypeScope, output: &str) {
+    let mut module = Scope::new(&type_scope.get_module_name());
 
     for enu in type_scope.enums.into_iter() {
         let mut sdk_enum = Enum::new(&enu.get_name());
@@ -56,7 +46,7 @@ fn dump_type_scope(type_scope: &SchemaSystemTypeScope) {
             continue;
         };
 
-        let mut sdk_class = Class::new(&class.get_name());
+        let mut sdk_class = Class::new(&class.get_name(), &type_scope.get_module_name());
 
         let inheritance = get_class_inheritance(&class);
 
@@ -68,11 +58,7 @@ fn dump_type_scope(type_scope: &SchemaSystemTypeScope) {
                     continue;
                 };
 
-                sdk_class.add_field(ClassField::new(
-                    &field.get_name(),
-                    ty.get_name().to_string(),
-                    field.single_inheritance_offset,
-                ));
+                sdk_class.add_field(ClassField::new(&class.get_name(), &field.get_name(), ty));
             }
         }
 
@@ -81,8 +67,9 @@ fn dump_type_scope(type_scope: &SchemaSystemTypeScope) {
 
     if let Err(e) = std::fs::write(
         format!(
-            "C:\\Users\\stacky\\Desktop\\share\\moros\\{}.rs",
-            type_scope.get_module_name()
+            "{}/{}.rs",
+            output,
+            type_scope.get_module_name().replace(".dll", "")
         ),
         module.to_string(),
     ) {
@@ -90,16 +77,16 @@ fn dump_type_scope(type_scope: &SchemaSystemTypeScope) {
     }
 }
 
-pub fn dump(schema_system: &SchemaSystem) {
-    // if let Some(global_type_scope) = schema_system.get_global_type_scope() {
-    //     dump_type_scope(global_type_scope);
-    // }
+pub fn dump(schema_system: &SchemaSystem, output: &str) {
+    if let Some(global_type_scope) = schema_system.get_global_type_scope() {
+        dump_type_scope(global_type_scope, output);
+    }
 
     for type_scope in schema_system.type_scopes.iter() {
-        if !type_scope.get_module_name().contains("client") {
+        if type_scope.get_module_name().contains("server") {
             continue;
         }
 
-        dump_type_scope(type_scope);
+        dump_type_scope(type_scope, output);
     }
 }

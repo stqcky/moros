@@ -6,3 +6,24 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+iced-x86 = "1.20.0"
+lazy_static = "1.4.0"
+thiserror = "1.0.50"
+encryption = { path = "../encryption/encryption/" }
+cstruct = { path = "../cstruct/" }
+schema = { path = "../schema/" }
+anyhow = "1.0.75"
+log = "0.4.20"
+convert_case = "0.6.0"
+regex = "1.10.2"
+chrono = "0.4.31"
+
+[dependencies.windows]
+version = "0.51.1"
+features = [
+    "Win32_Foundation",
+    "Win32_System_SystemServices",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_Console",
+    "Win32_System_LibraryLoader"
+]

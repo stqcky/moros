@@ -1,8 +1,10 @@
-use std::{ops::Deref, sync::OnceLock, time::Duration};
+use std::{sync::OnceLock, time::Duration};
 
 use anyhow::Context;
 use dotenvy_macro::dotenv;
 use encryption::x;
+use lazy_static::lazy_static;
+use sdk::{create_interface, interfaces::client::client::Source2Client, xw};
 use windows::Win32::{
     Foundation::HINSTANCE,
     System::{
@@ -12,9 +14,7 @@ use windows::Win32::{
     UI::WindowsAndMessaging::{MessageBoxA, MB_OK},
 };
 
-use crate::{dump, sdk::modules::schema_system::SchemaSystemModule, xw};
-
-pub struct Cheat {}
+use crate::ui;
 
 static MODULE: OnceLock<HINSTANCE> = OnceLock::new();
 
@@ -41,16 +41,12 @@ pub fn attach(module: HINSTANCE) {
 }
 
 fn init() -> anyhow::Result<()> {
-    let schema_system_module =
-        SchemaSystemModule::new().context(x!("could not initialize schema system module"))?;
-
-    let schema_system = schema_system_module.schema_system;
-
-    log::info!("SchemaSystem: {:p}", schema_system);
-
-    dump::schema::dump(schema_system);
+    ui::vulkan::setup()?;
 
     std::thread::sleep(Duration::from_secs(2));
+
+    ui::vulkan::unhook().context("could not uhnook vulkan")?;
+
     detach();
 
     Ok(())

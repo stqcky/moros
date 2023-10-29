@@ -1,6 +1,6 @@
 use std::{ffi::c_void, marker::PhantomData};
 
-use super::utlmempool::CUtlMemoryPool;
+use super::utlmempool::UtlMemoryPool;
 
 #[repr(C)]
 struct HashFixedData<T, Key> {
@@ -57,15 +57,15 @@ struct HashBucket<T, Key> {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct CUtlTSHash<'a, T, Key = u64> {
-    entry_memory: CUtlMemoryPool,
+pub struct UtlTSHash<'a, T, Key = u64> {
+    entry_memory: UtlMemoryPool,
     buckets: HashBucket<T, Key>,
     needs_commit: bool,
 
     _phantom: PhantomData<&'a T>,
 }
 
-impl<T> CUtlTSHash<'_, T, u64> {
+impl<T> UtlTSHash<'_, T, u64> {
     pub fn block_size(&self) -> i32 {
         self.entry_memory.blocks_per_blob
     }
@@ -119,7 +119,7 @@ impl<'a, T: 'a> Iterator for CUtlTSHashIter<'a, *const T> {
     }
 }
 
-impl<'a, T> IntoIterator for CUtlTSHash<'a, *const T, u64>
+impl<'a, T> IntoIterator for UtlTSHash<'a, *const T, u64>
 where
     CUtlTSHashIter<'a, *const T>: Iterator<Item = &'a T>,
 {

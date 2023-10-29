@@ -2,12 +2,14 @@ use std::ops::Index;
 
 use encryption::x;
 
-pub struct CUtlVector<T> {
+pub struct UtlVector<T> {
     size: isize,
     elements: *const *const T,
 }
 
-impl<T> Index<isize> for CUtlVector<T> {
+unsafe impl<T> Sync for UtlVector<T> {}
+
+impl<T> Index<isize> for UtlVector<T> {
     type Output = T;
 
     fn index(&self, index: isize) -> &Self::Output {
@@ -23,9 +25,9 @@ impl<T> Index<isize> for CUtlVector<T> {
     }
 }
 
-impl<'a, T: Copy> CUtlVector<T> {
-    pub fn iter(&self) -> CUtlVectorIter<T> {
-        CUtlVectorIter {
+impl<'a, T: Copy> UtlVector<T> {
+    pub fn iter(&self) -> UtlVectorIter<T> {
+        UtlVectorIter {
             vector: self,
             index: 0,
         }
@@ -40,12 +42,12 @@ impl<'a, T: Copy> CUtlVector<T> {
     }
 }
 
-pub struct CUtlVectorIter<'a, T> {
-    vector: &'a CUtlVector<T>,
+pub struct UtlVectorIter<'a, T> {
+    vector: &'a UtlVector<T>,
     index: isize,
 }
 
-impl<'a, T: Copy> Iterator for CUtlVectorIter<'a, T> {
+impl<'a, T: Copy> Iterator for UtlVectorIter<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -56,3 +58,5 @@ impl<'a, T: Copy> Iterator for CUtlVectorIter<'a, T> {
         current
     }
 }
+
+pub struct UtlVectorSimdPaddedVector {}
