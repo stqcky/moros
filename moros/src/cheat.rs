@@ -41,7 +41,7 @@ pub fn attach(module: HINSTANCE) {
 }
 
 fn init() -> anyhow::Result<()> {
-    ui::vulkan::setup()?;
+    ui::setup()?;
 
     std::thread::sleep(Duration::from_secs(2));
 

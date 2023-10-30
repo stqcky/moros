@@ -1,7 +1,7 @@
 use std::sync::{Arc, OnceLock};
 
-use anyhow::{bail, Context};
-use ash::vk;
+use anyhow::Context;
+use ash::vk::{self, PFN_vkAcquireNextImageKHR, PFN_vkAcquireNextImage2KHR, PFN_vkQueuePresentKHR, PFN_vkCreateSwapchainKHR};
 use retour::GenericDetour;
 use vulkano::{
     device::{
@@ -11,6 +11,10 @@ use vulkano::{
     instance::{Instance, InstanceCreateInfo, InstanceExtensions},
     VulkanLibrary,
 };
+
+use crate::{hook, unhook};
+
+static DEVICE: OnceLock<vk::Device> = OnceLock::new();
 
 fn create_device() -> anyhow::Result<Arc<Device>> {
     let library = VulkanLibrary::new().context("could not create vulkan library")?;
@@ -82,39 +86,34 @@ pub fn setup() -> anyhow::Result<()> {
     let queue_present = khr_swapchain.queue_present_khr;
     let create_swapchain = khr_swapchain.create_swapchain_khr;
 
-    ACQUIRE_NEXT_IMAGE_HOOK
-        .set(
-            unsafe { GenericDetour::new(acquire_next_image, acquire_next_image_hk) }
-                .context("could not hook acquire next image")?,
-        )
-        .expect("could not set global acquire next image hook");
+    hook!(
+        ACQUIRE_NEXT_IMAGE,
+        acquire_next_image,
+        acquire_next_image_hk
+    );
 
-    unsafe { ACQUIRE_NEXT_IMAGE_HOOK.get().unwrap().enable().unwrap() };
+    hook!(
+        ACQUIRE_NEXT_IMAGE2,
+        acquire_next_image2,
+        acquire_next_image2_hk
+    );
+
+    hook!(QUEUE_PRESENT, queue_present, queue_present_hk);
+    hook!(CREATE_SWAPCHAIN, create_swapchain, create_swapchain_hk);
 
     Ok(())
 }
 
 pub fn unhook() -> anyhow::Result<()> {
-    let Some(acquire_next_image_hook) = ACQUIRE_NEXT_IMAGE_HOOK.get() else {
-        bail!("could not get vkAcquireNextImageKHR hook");
-    };
-
-    unsafe { acquire_next_image_hook.disable()? }
+    unhook!(ACQUIRE_NEXT_IMAGE);
+    unhook!(ACQUIRE_NEXT_IMAGE2);
+    unhook!(QUEUE_PRESENT);
+    unhook!(CREATE_SWAPCHAIN);
 
     Ok(())
 }
 
-type AcquireNextImageKHR = unsafe extern "system" fn(
-    vk::Device,
-    vk::SwapchainKHR,
-    u64,
-    vk::Semaphore,
-    vk::Fence,
-    *mut u32,
-) -> vk::Result;
-
-static ACQUIRE_NEXT_IMAGE_HOOK: OnceLock<GenericDetour<AcquireNextImageKHR>> = OnceLock::new();
-
+static ACQUIRE_NEXT_IMAGE: OnceLock<GenericDetour<PFN_vkAcquireNextImageKHR>> = OnceLock::new();
 extern "system" fn acquire_next_image_hk(
     device: vk::Device,
     swapchain: vk::SwapchainKHR,
@@ -123,12 +122,65 @@ extern "system" fn acquire_next_image_hk(
     fence: vk::Fence,
     image_index: *mut u32,
 ) -> vk::Result {
-    log::info!("acquire next image. device: {:?}", device);
+    let _ = DEVICE.set(device);
 
-    let Some(hook) = ACQUIRE_NEXT_IMAGE_HOOK.get() else {
-        log::error!("could not get vkAcquireNextImageKHR hook");
+    let Some(hook) = ACQUIRE_NEXT_IMAGE.get() else {
         return vk::Result::ERROR_UNKNOWN;
     };
 
     unsafe { hook.call(device, swapchain, timeout, semaphore, fence, image_index) }
+}
+
+static ACQUIRE_NEXT_IMAGE2: OnceLock<GenericDetour<PFN_vkAcquireNextImage2KHR>> = OnceLock::new();
+extern "system" fn acquire_next_image2_hk(
+    device: vk::Device,
+    acquire_info: *const vk::AcquireNextImageInfoKHR,
+    image_index: *mut u32,
+) -> vk::Result {
+    let _ = DEVICE.set(device);
+
+    let Some(hook) = ACQUIRE_NEXT_IMAGE2.get() else {
+        log::error!("could not get vkAcquireNextImage2KHR hook");
+        return vk::Result::ERROR_UNKNOWN;
+    };
+
+    unsafe { hook.call(device, acquire_info, image_index) }
+}
+
+static QUEUE_PRESENT: OnceLock<GenericDetour<PFN_vkQueuePresentKHR>> = OnceLock::new();
+extern "system" fn queue_present_hk(
+    queue: vk::Queue,
+    present_info: *const vk::PresentInfoKHR,
+) -> vk::Result {
+    log::info!("queue present. queue: {:?}", queue);
+
+    let Some(hook) = QUEUE_PRESENT.get() else {
+        log::error!("could not get vkQueuePresentKHR hook");
+        return vk::Result::ERROR_UNKNOWN;
+    };
+
+    unsafe { hook.call(queue, present_info) }
+}
+
+static CREATE_SWAPCHAIN: OnceLock<GenericDetour<PFN_vkCreateSwapchainKHR>> = OnceLock::new();
+extern "system" fn create_swapchain_hk(
+    device: vk::Device,
+    create_info: *const vk::SwapchainCreateInfoKHR,
+    allocator: *const vk::AllocationCallbacks,
+    swapchain: *mut vk::SwapchainKHR,
+) -> vk::Result {
+    log::info!("create swapchain. device: {:?}", device);
+
+    let Some(hook) = CREATE_SWAPCHAIN.get() else {
+        log::error!("could not get vkCreateSwapchainKHR hook");
+        return vk::Result::ERROR_UNKNOWN;
+    };
+
+    unsafe { hook.call(device, create_info, allocator, swapchain) }
+}
+
+fn render(queue: vk::Queue, present_info: *const vk::PresentInfoKHR) {
+    let Some(device) = DEVICE.get() else {
+        return;
+    };
 }

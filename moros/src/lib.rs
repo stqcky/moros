@@ -5,6 +5,7 @@ use windows::Win32::{Foundation::*, System::SystemServices::*};
 mod cheat;
 mod features;
 pub mod ui;
+mod hook;
 
 #[no_mangle]
 #[allow(non_snake_case)]
