@@ -126,14 +126,12 @@ fn swapchain_present_hk(swapchain: IDXGISwapChain, sync_interval: u32, flags: u3
         })
         .lock();
 
-    log::debug!("dx11 trying to get input");
     let input = INPUT
         .get()
         .expect(&x!("win32::INPUT is not initialized"))
         .lock()
         .collect_input()
         .expect(&x!("could not collect input"));
-    log::debug!("dx11 got input");
 
     if let Err(e) = renderer.paint(
         &swapchain,
@@ -143,8 +141,6 @@ fn swapchain_present_hk(swapchain: IDXGISwapChain, sync_interval: u32, flags: u3
     ) {
         log::error!("{}: {e}", x!("ui rendering error"));
     }
-
-    log::debug!("dx11 dropped input");
 
     unsafe { hook.call(swapchain, sync_interval, flags) }
 }

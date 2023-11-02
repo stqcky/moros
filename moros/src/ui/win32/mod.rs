@@ -46,15 +46,13 @@ pub fn destroy() -> anyhow::Result<()> {
 }
 
 extern "system" fn wndproc_hk(window: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-    log::debug!("wndproc_hk");
-    let mut input = INPUT.get().expect(&x!("INPUT is not initialized")).lock();
-    log::debug!("wndproc got input");
-
-    input.process(msg, wparam.0, lparam.0);
+    INPUT
+        .get()
+        .expect(&x!("INPUT is not initialized"))
+        .lock()
+        .process(msg, wparam.0, lparam.0);
 
     let wndproc = WNDPROC.get().expect(&x!("WNDPROC is not initialized"));
-
-    log::debug!("wndproc dropped input");
 
     unsafe { CallWindowProcW(*wndproc, window, msg, wparam, lparam) }
 }
