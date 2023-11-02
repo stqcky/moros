@@ -6,9 +6,12 @@ members = [
     "cstruct",
     "schema",
     "sdk",
+    "egui/egui-directx11",
+    "egui/egui-win32",
     "moros",
 ]
 
 [profile.release]
 debug = false
 strip = true
+panic = "abort"

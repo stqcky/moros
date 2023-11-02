@@ -1,9 +1,43 @@
-pub mod vulkan;
-pub mod window;
+use egui::{Context, Window};
+
+use crate::cheat;
+
+use self::window::find_window;
+
+mod dx11;
+mod win32;
+mod window;
+
+pub struct State {}
+
+impl Default for State {
+    fn default() -> Self {
+        Self {}
+    }
+}
 
 pub fn setup() -> anyhow::Result<()> {
-    window::setup()?;
-    vulkan::setup()?;
+    let window = find_window()?;
+
+    win32::setup(window)?;
+    dx11::setup(window)?;
+
+    Ok(())
+}
+
+pub fn render(ctx: &Context, state: &mut State) {
+    Window::new("moros").show(ctx, |ui| {
+        ui.label("hello world");
+
+        if ui.button("unload").clicked() {
+            cheat::unload();
+        }
+    });
+}
+
+pub fn destroy() -> anyhow::Result<()> {
+    win32::destroy()?;
+    dx11::destroy()?;
 
     Ok(())
 }

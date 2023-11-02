@@ -10,6 +10,8 @@ crate-type = ["cdylib"]
 encryption = { path = "../encryption/encryption" }
 sdk = { path = "../sdk" }
 cstruct = { path = "../cstruct" }
+egui-directx11 = { path = "../egui/egui-directx11" }
+egui-win32 = { path="../egui/egui-win32" }
 log = "0.4.20"
 pretty_env_logger = "0.5.0"
 thiserror = "1.0.49"
@@ -17,10 +19,9 @@ lazy_static = "1.4.0"
 dotenvy_macro = "0.15.7"
 anyhow = "1.0.75"
 chrono = "0.4.31"
-imgui = "0.11.0"
 retour = "0.3.1"
-vulkano = "0.34.0"
-ash = "0.37.3"
+egui = "0.22.0"
+parking_lot = "0.12.1"
 
 [dependencies.windows]
 version = "0.51.1"
@@ -30,5 +31,9 @@ features = [
     "Win32_UI_WindowsAndMessaging",
     "Win32_System_Console",
     "Win32_System_LibraryLoader",
-    "Win32_System_Threading"
+    "Win32_System_Threading",
+    "Win32_Graphics_Direct3D11",
+    "Win32_Graphics_Direct3D",
+    "Win32_Graphics_Dxgi",
+    "Win32_Graphics_Dxgi_Common",
 ]

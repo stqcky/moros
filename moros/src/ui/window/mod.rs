@@ -1,3 +1,5 @@
+use anyhow::bail;
+use encryption::x;
 use windows::Win32::{
     Foundation::{BOOL, FALSE, HWND, LPARAM, TRUE},
     System::{Console::GetConsoleWindow, Threading::GetCurrentProcessId},
@@ -28,12 +30,14 @@ unsafe extern "system" fn enum_window(window: HWND, lparam: LPARAM) -> BOOL {
     FALSE
 }
 
-pub fn setup() -> anyhow::Result<()> {
+pub fn find_window() -> anyhow::Result<HWND> {
     let mut hwnd: HWND = Default::default();
 
     let _ = unsafe { EnumWindows(Some(enum_window), LPARAM(&mut hwnd as *mut HWND as isize)) };
 
-    log::info!("found window: {}", hwnd.0);
-
-    Ok(())
+    if hwnd.0 == 0 {
+        bail!(x!("could not find window"))
+    } else {
+        Ok(hwnd)
+    }
 }
