@@ -1,4 +1,5 @@
 use std::{
+    panic::PanicInfo,
     sync::{
         atomic::{AtomicBool, Ordering},
         OnceLock,
@@ -8,11 +9,16 @@ use std::{
 
 use dotenvy_macro::dotenv;
 use encryption::x;
-use windows::Win32::{
-    Foundation::HINSTANCE,
-    System::{
-        Console::{AllocConsole, FreeConsole},
-        LibraryLoader::FreeLibraryAndExitThread,
+use sdk::xw;
+use windows::{
+    core::PCSTR,
+    Win32::{
+        Foundation::HINSTANCE,
+        System::{
+            Console::{AllocConsole, FreeConsole},
+            LibraryLoader::FreeLibraryAndExitThread,
+        },
+        UI::WindowsAndMessaging::{MessageBoxA, MB_OK},
     },
 };
 
@@ -34,11 +40,13 @@ pub fn attach(module: HINSTANCE) {
     )
     .init();
 
+    std::panic::set_hook(Box::new(panic_handler));
+
     if let Err(e) = init() {
         log::error!("{e}");
     }
 
-    if let Err(e) = detach() {
+    if let Err(e) = destroy() {
         log::error!("{e}");
     }
 }
@@ -57,7 +65,7 @@ pub fn unload() {
     UNLOAD.store(true, Ordering::SeqCst);
 }
 
-pub fn detach() -> anyhow::Result<()> {
+pub fn destroy() -> anyhow::Result<()> {
     ui::destroy()?;
 
     let module = MODULE.get().expect(&x!("module handle is null"));
@@ -69,4 +77,15 @@ pub fn detach() -> anyhow::Result<()> {
 
         FreeLibraryAndExitThread(*module, 0);
     }
+}
+
+fn panic_handler(info: &PanicInfo) {
+    unsafe {
+        MessageBoxA(
+            None,
+            PCSTR::from_raw((info.to_string() + "\0").as_ptr()),
+            xw!("moros error\0"),
+            MB_OK,
+        )
+    };
 }
