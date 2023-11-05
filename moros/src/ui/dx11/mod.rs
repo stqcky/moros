@@ -82,7 +82,7 @@ fn create_swapchain(window: HWND) -> anyhow::Result<IDXGISwapChain> {
         .context(x!("D3D11CreateDeviceAndSwapChain failed"))?
     };
 
-    Ok(swapchain.context(x!("could not create d3d11 swapchain"))?)
+    swapchain.context(x!("could not create d3d11 swapchain"))
 }
 
 pub fn setup(window: HWND) -> anyhow::Result<()> {
@@ -139,7 +139,7 @@ fn swapchain_present_hk(swapchain: IDXGISwapChain, sync_interval: u32, flags: u3
         input,
         super::render,
     ) {
-        log::error!("{}: {e}", x!("ui rendering error"));
+        log::error!("{}: {e}", x!("rendering error"));
     }
 
     unsafe { hook.call(swapchain, sync_interval, flags) }

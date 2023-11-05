@@ -55,32 +55,64 @@ fn generate_getters(fields: Fields, scope: &LitStr) -> Vec<TokenStream2> {
                 }
             };
 
-            if let Type::Ptr(ptr) = field_ty {
-                let ptr_to = &ptr.elem;
+            match field_ty {
+                Type::Array(array) => {
+                    if let Type::Path(elem) = array.elem.as_ref() {
+                        if elem.path.segments.last().is_some_and(|segment| segment.ident == "c_char") {
+                            return quote! {
+                                pub fn #field_name(&self) -> std::borrow::Cow<'_, str> {
+                                    #offset
 
-                quote! {
-                    pub fn #field_name(&self) -> Option<&#ptr_to> {
-                        #offset
+                                    unsafe {
+                                        std::ffi::CStr::from_ptr(
+                                            std::mem::transmute::<_, *const std::ffi::c_char>(self).offset(*OFFSET as isize)
+                                        ).to_string_lossy()
+                                    }
+                                }
+                            }
+                        }
+                    } 
 
-                        unsafe {
-                            std::mem::transmute::<_, *const #field_ty>(
-                                std::mem::transmute::<_, *const u8>(self).offset(*OFFSET as isize)
-                            ).read().as_ref()
+                    quote! {
+                        pub fn #field_name(&self) -> #field_ty {
+                            #offset
+
+                            unsafe {
+                                std::mem::transmute::<_, *const #field_ty>(
+                                    std::mem::transmute::<_, *const u8>(self).offset(*OFFSET as isize)
+                                ).read()
+                            }
                         }
                     }
-                }
-            } else {
-                quote! {
-                    pub fn #field_name(&self) -> #field_ty {
-                        #offset
+                },
+                Type::Ptr(ptr) => {
+                    let ptr_to = &ptr.elem;
 
-                        unsafe {
-                            std::mem::transmute::<_, *const #field_ty>(
-                                std::mem::transmute::<_, *const u8>(self).offset(*OFFSET as isize)
-                            ).read()
+                    quote! {
+                        pub fn #field_name(&self) -> Option<&#ptr_to> {
+                            #offset
+
+                            unsafe {
+                                std::mem::transmute::<_, *const #field_ty>(
+                                    std::mem::transmute::<_, *const u8>(self).offset(*OFFSET as isize)
+                                ).read().as_ref()
+                            }
                         }
                     }
-                }
+                },
+                _ => {
+                    quote! {
+                        pub fn #field_name(&self) -> #field_ty {
+                            #offset
+
+                            unsafe {
+                                std::mem::transmute::<_, *const #field_ty>(
+                                    std::mem::transmute::<_, *const u8>(self).offset(*OFFSET as isize)
+                                ).read()
+                            }
+                        }
+                    }
+                },
             }
         })
         .collect()

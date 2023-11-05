@@ -183,15 +183,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "convert_case"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
-dependencies = [
- "unicode-segmentation",
-]
-
-[[package]]
 name = "core-foundation"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -763,12 +754,13 @@ dependencies = [
  "egui-directx11",
  "egui-win32",
  "encryption",
+ "iced-x86",
  "lazy_static",
  "log",
  "parking_lot 0.12.1",
  "pretty_env_logger",
+ "regex",
  "retour",
- "sdk",
  "thiserror",
  "windows",
 ]
@@ -1174,24 +1166,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
-name = "sdk"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "convert_case",
- "cstruct",
- "encryption",
- "iced-x86",
- "lazy_static",
- "log",
- "regex",
- "schema",
- "thiserror",
- "windows",
-]
-
-[[package]]
 name = "slice-pool2"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1319,12 +1293,6 @@ name = "unicode-ident"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
-
-[[package]]
-name = "unicode-segmentation"
-version = "1.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dd624098567895118886609431a7c3b8f516e41d30e0643f03d94592a147e36"
 
 [[package]]
 name = "version_check"

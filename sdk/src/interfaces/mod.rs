@@ -3,6 +3,7 @@ use anyhow::Context;
 use encryption::x;
 
 pub mod client;
+pub mod engine;
 pub mod schema_system;
 
 pub fn create_interface<'a, T>(module: &'a str, interface: &'a str) -> anyhow::Result<&'static T> {

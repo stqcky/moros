@@ -45,7 +45,6 @@ fn generate_getters(fields: Fields) -> Vec<TokenStream2> {
 
 fn generate_str_getter(field: &Field) -> TokenStream2 {
     let field_name = field.clone().ident.unwrap();
-    let getter_name = Ident::new(&format!("get_{field_name}"), Span::call_site());
 
     let array_suffix = match &field.ty {
         syn::Type::Array(_) => quote! {
@@ -55,7 +54,7 @@ fn generate_str_getter(field: &Field) -> TokenStream2 {
     };
 
     quote! {
-        pub fn #getter_name(&self) -> Cow<'_, str> {
+        pub fn #field_name(&self) -> Cow<'_, str> {
             unsafe { std::ffi::CStr::from_ptr((self.#field_name)#array_suffix).to_string_lossy() }
         }
     }
@@ -63,7 +62,6 @@ fn generate_str_getter(field: &Field) -> TokenStream2 {
 
 fn generate_ptr_getter(field: &Field) -> TokenStream2 {
     let field_name = field.clone().ident.unwrap();
-    let getter_name = Ident::new(&format!("get_{field_name}"), Span::call_site());
 
     let field_type = match &field.ty {
         syn::Type::Ptr(ptr) => &ptr.elem,
@@ -71,7 +69,7 @@ fn generate_ptr_getter(field: &Field) -> TokenStream2 {
     };
 
     quote! {
-        pub fn #getter_name(&self) -> Option<&#field_type> {
+        pub fn #field_name(&self) -> Option<&#field_type> {
             unsafe { self.#field_name.as_ref() }
         }
     }

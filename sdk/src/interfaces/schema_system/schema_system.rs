@@ -35,7 +35,7 @@ impl<'a> SchemaSystem<'_> {
 
         let class = type_scope.find_declared_class(class)?;
 
-        let field = class.fields().into_iter().find(|x| x.get_name() == field)?;
+        let field = class.fields().into_iter().find(|x| x.name() == field)?;
 
         Some(field.single_inheritance_offset)
     }
@@ -234,7 +234,6 @@ pub struct SchemaClassInfo<'a> {
     __unknown2: i16,
     __unknown3: i16,
 
-    #[ptr]
     fields: *const SchemaClassField<'a>,
 
     #[ptr]

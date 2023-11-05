@@ -8,7 +8,6 @@ pub mod engine2;
 pub mod global;
 pub mod networksystem;
 pub mod panorama;
-pub mod rendersystemvulkan;
 
 lazy_static! {
     pub static ref SCHEMA_SYSTEM: &'static SchemaSystem<'static> =

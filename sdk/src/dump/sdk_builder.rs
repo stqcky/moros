@@ -190,7 +190,7 @@ impl<'a> ClassField<'a> {
 
     fn rustify_type(ty: &SchemaType<'_>) -> String {
         match ty.type_category {
-            TypeCategory::Builtin => match ty.get_name().as_ref() {
+            TypeCategory::Builtin => match ty.name().as_ref() {
                 "float32" => "f32",
                 "float64" => "f64",
 
@@ -207,7 +207,7 @@ impl<'a> ClassField<'a> {
                 "bool" => "bool",
                 "char" => "std::ffi::c_char",
                 _ => {
-                    log::error!("unknown builtin type: {}", ty.get_name());
+                    log::error!("unknown builtin type: {}", ty.name());
 
                     "unknown builtin type"
                 }
@@ -216,7 +216,7 @@ impl<'a> ClassField<'a> {
             TypeCategory::Pointer => {
                 let ty = ty
                     .value
-                    .get_schema_type()
+                    .schema_type()
                     .expect("could not get pointer type");
 
                 format!("*const {}", Self::rustify_type(ty))
@@ -224,20 +224,20 @@ impl<'a> ClassField<'a> {
             TypeCategory::Bitfield => "u8".to_string(),
             TypeCategory::FixedArray => {
                 let array = unsafe { &ty.value.array };
-                let array_type = array.get_element_type().expect("could not get array type");
+                let array_type = array.element_type().expect("could not get array type");
 
                 format!("[{}; {}]", Self::rustify_type(array_type), array.size)
             }
             TypeCategory::Atomic => match ty.atomic_category {
-                AtomicCategory::Basic => Class::rustify_name(&ty.get_name()),
+                AtomicCategory::Basic => Class::rustify_name(&ty.name()),
                 AtomicCategory::T => {
                     let atomic_t = unsafe { &ty.value.atomic_t };
 
                     let template = atomic_t
-                        .get_template_typename()
+                        .template_typename()
                         .expect("could not get template");
 
-                    let ty_name = ty.get_name();
+                    let ty_name = ty.name();
 
                     let (base, _) = ty_name
                         .split_once("<")
@@ -252,7 +252,7 @@ impl<'a> ClassField<'a> {
                 AtomicCategory::CollectionOfT => {
                     let atomic_t = unsafe { &ty.value.atomic_t };
                     let ty = atomic_t
-                        .get_template_typename()
+                        .template_typename()
                         .expect("could not get collection of T type");
 
                     format!("UtlVector<{}>", Self::rustify_type(ty))
@@ -265,7 +265,7 @@ impl<'a> ClassField<'a> {
                         return "unknown atomic tt".to_string()
                     };
 
-                    let ty_name = ty.get_name();
+                    let ty_name = ty.name();
 
                     let (base, _) = ty_name
                         .split_once("<")
@@ -279,7 +279,7 @@ impl<'a> ClassField<'a> {
                     )
                 }
                 AtomicCategory::I => {
-                    log::error!("unknown atomic i: {}", ty.get_name());
+                    log::error!("unknown atomic i: {}", ty.name());
                     "unknown atomic i".to_string()
                 }
                 AtomicCategory::None => {
@@ -292,16 +292,16 @@ impl<'a> ClassField<'a> {
                 }
             },
             TypeCategory::DeclaredClass => {
-                let class_info = ty.value.get_class_info().expect("could not get class info");
+                let class_info = ty.value.class_info().expect("could not get class info");
 
-                Class::rustify_name(&class_info.get_name())
+                Class::rustify_name(&class_info.name())
             }
             TypeCategory::DeclaredEnum => {
-                let enum_info = ty.value.get_enum_info().expect("could not get enum info");
+                let enum_info = ty.value.enum_info().expect("could not get enum info");
 
-                Enum::rustify_name(&enum_info.get_name())
+                Enum::rustify_name(&enum_info.name())
             }
-            TypeCategory::None => format!("unknown none: {}", ty.get_name()),
+            TypeCategory::None => format!("unknown none: {}", ty.name()),
         }
     }
 }

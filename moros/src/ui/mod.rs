@@ -8,13 +8,8 @@ mod dx11;
 mod win32;
 mod window;
 
+#[derive(Default)]
 pub struct State {}
-
-impl Default for State {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 pub fn setup() -> anyhow::Result<()> {
     let window = find_window()?;

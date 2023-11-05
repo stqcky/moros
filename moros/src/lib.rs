@@ -5,6 +5,8 @@ mod features;
 mod hook;
 pub mod ui;
 mod vmt;
+mod interfaces;
+pub mod memory;
 
 #[no_mangle]
 #[allow(non_snake_case)]

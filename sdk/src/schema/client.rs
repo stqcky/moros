@@ -2127,7 +2127,7 @@ pub struct BasePlayerController {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerPingServices {
+pub struct PlayerPingServices {
     #[field("CCSPlayer_PingServices", "m_hPlayerPing")]
     player_ping: Handle<BaseEntity>,
 }
@@ -2138,7 +2138,7 @@ pub struct PlayerViewModelServices {}
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsWeaponBase {
+pub struct WeaponBase {
     #[field("CEntityInstance", "m_iszPrivateVScripts")]
     private_v_scripts: UtlSymbolLarge,
     #[field("CEntityInstance", "m_pEntity")]
@@ -2652,7 +2652,7 @@ pub struct EntitySpottedState {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerControllerInGameMoneyServices {
+pub struct PlayerControllerInGameMoneyServices {
     #[field("CPlayerControllerComponent", "__m_pChainEntity")]
     chain_entity: NetworkVarChainer,
     #[field("CCSPlayerController_InGameMoneyServices", "m_iAccount")]
@@ -2680,7 +2680,7 @@ pub struct ServerAuthoritativeWeaponSlot {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerControllerInventoryServices {
+pub struct PlayerControllerInventoryServices {
     #[field("CPlayerControllerComponent", "__m_pChainEntity")]
     chain_entity: NetworkVarChainer,
     #[field("CCSPlayerController_InventoryServices", "m_unMusicID")]
@@ -2781,7 +2781,7 @@ pub struct MatchStats {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerControllerActionTrackingServices {
+pub struct PlayerControllerActionTrackingServices {
     #[field("CPlayerControllerComponent", "__m_pChainEntity")]
     chain_entity: NetworkVarChainer,
     #[field("CCSPlayerController_ActionTrackingServices", "m_perRoundStats")]
@@ -2804,7 +2804,7 @@ pub struct CsPlayerControllerActionTrackingServices {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerPawnBase {
+pub struct PlayerPawnBase {
     #[field("CEntityInstance", "m_iszPrivateVScripts")]
     private_v_scripts: UtlSymbolLarge,
     #[field("CEntityInstance", "m_pEntity")]
@@ -3164,7 +3164,7 @@ pub struct CsPlayerPawnBase {
     #[field("C_BasePlayerPawn", "m_bIsSwappingToPredictableController")]
     is_swapping_to_predictable_controller: bool,
     #[field("C_CSPlayerPawnBase", "m_pPingServices")]
-    ping_services: *const CsPlayerPingServices,
+    ping_services: *const PlayerPingServices,
     #[field("C_CSPlayerPawnBase", "m_pViewModelServices")]
     view_model_services: *const PlayerViewModelServices,
     #[field("C_CSPlayerPawnBase", "m_fRenderingClipPlane")]
@@ -3180,7 +3180,7 @@ pub struct CsPlayerPawnBase {
     #[field("C_CSPlayerPawnBase", "m_bCachedPlaneIsValid")]
     cached_plane_is_valid: bool,
     #[field("C_CSPlayerPawnBase", "m_pClippingWeapon")]
-    clipping_weapon: *const CsWeaponBase,
+    clipping_weapon: *const WeaponBase,
     #[field("C_CSPlayerPawnBase", "m_previousPlayerState")]
     previous_player_state: CsPlayerState,
     #[field("C_CSPlayerPawnBase", "m_flLastCollisionCeiling")]
@@ -3442,20 +3442,20 @@ pub struct CsPlayerPawnBase {
     #[field("C_CSPlayerPawnBase", "m_bKilledByHeadshot")]
     killed_by_headshot: bool,
     #[field("C_CSPlayerPawnBase", "m_hOriginalController")]
-    original_controller: Handle<CsPlayerController>,
+    original_controller: Handle<PlayerController>,
 }
 
 #[derive(Schema)]
 #[scope("client.dll")]
 pub struct DamageRecord {
     #[field("CDamageRecord", "m_PlayerDamager")]
-    player_damager: Handle<CsPlayerPawnBase>,
+    player_damager: Handle<PlayerPawnBase>,
     #[field("CDamageRecord", "m_PlayerRecipient")]
-    player_recipient: Handle<CsPlayerPawnBase>,
+    player_recipient: Handle<PlayerPawnBase>,
     #[field("CDamageRecord", "m_hPlayerControllerDamager")]
-    player_controller_damager: Handle<CsPlayerController>,
+    player_controller_damager: Handle<PlayerController>,
     #[field("CDamageRecord", "m_hPlayerControllerRecipient")]
-    player_controller_recipient: Handle<CsPlayerController>,
+    player_controller_recipient: Handle<PlayerController>,
     #[field("CDamageRecord", "m_szPlayerDamagerName")]
     player_damager_name: UtlString,
     #[field("CDamageRecord", "m_szPlayerRecipientName")]
@@ -3480,7 +3480,7 @@ pub struct DamageRecord {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerControllerDamageServices {
+pub struct PlayerControllerDamageServices {
     #[field("CPlayerControllerComponent", "__m_pChainEntity")]
     chain_entity: NetworkVarChainer,
     #[field("CCSPlayerController_DamageServices", "m_nSendUpdate")]
@@ -3491,14 +3491,14 @@ pub struct CsPlayerControllerDamageServices {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsObserverPawn {
+pub struct ObserverPawn {
     #[field("C_CSObserverPawn", "m_hDetectParentChange")]
     detect_parent_change: EntityHandle,
 }
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerController {
+pub struct PlayerController {
     #[field("CBasePlayerController", "m_nFinalPredictedTick")]
     final_predicted_tick: i32,
     #[field("CBasePlayerController", "m_CommandContext")]
@@ -3530,13 +3530,13 @@ pub struct CsPlayerController {
     #[field("CBasePlayerController", "m_iDesiredFOV")]
     desired_fov: u32,
     #[field("CCSPlayerController", "m_pInGameMoneyServices")]
-    in_game_money_services: *const CsPlayerControllerInGameMoneyServices,
+    in_game_money_services: *const PlayerControllerInGameMoneyServices,
     #[field("CCSPlayerController", "m_pInventoryServices")]
-    inventory_services: *const CsPlayerControllerInventoryServices,
+    inventory_services: *const PlayerControllerInventoryServices,
     #[field("CCSPlayerController", "m_pActionTrackingServices")]
-    action_tracking_services: *const CsPlayerControllerActionTrackingServices,
+    action_tracking_services: *const PlayerControllerActionTrackingServices,
     #[field("CCSPlayerController", "m_pDamageServices")]
-    damage_services: *const CsPlayerControllerDamageServices,
+    damage_services: *const PlayerControllerDamageServices,
     #[field("CCSPlayerController", "m_iPing")]
     ping: u32,
     #[field("CCSPlayerController", "m_bHasCommunicationAbuseMute")]
@@ -3614,7 +3614,7 @@ pub struct CsPlayerController {
     #[field("CCSPlayerController", "m_hPlayerPawn")]
     player_pawn: Handle<PlayerPawn>,
     #[field("CCSPlayerController", "m_hObserverPawn")]
-    observer_pawn: Handle<CsObserverPawn>,
+    observer_pawn: Handle<ObserverPawn>,
     #[field("CCSPlayerController", "m_bPawnIsAlive")]
     pawn_is_alive: bool,
     #[field("CCSPlayerController", "m_iPawnHealth")]
@@ -3634,7 +3634,7 @@ pub struct CsPlayerController {
     #[field("CCSPlayerController", "m_iPawnBotDifficulty")]
     pawn_bot_difficulty: i32,
     #[field("CCSPlayerController", "m_hOriginalControllerOfCurrentPawn")]
-    original_controller_of_current_pawn: Handle<CsPlayerController>,
+    original_controller_of_current_pawn: Handle<PlayerController>,
     #[field("CCSPlayerController", "m_iScore")]
     score: i32,
     #[field("CCSPlayerController", "m_vecKills")]
@@ -3647,7 +3647,7 @@ pub struct CsPlayerController {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerBulletServices {
+pub struct PlayerBulletServices {
     #[field("CCSPlayer_BulletServices", "m_totalHitsOnServer")]
     total_hits_on_server: i32,
 }
@@ -3669,14 +3669,14 @@ pub struct SellbackPurchaseEntry {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerBuyServices {
+pub struct PlayerBuyServices {
     #[field("CCSPlayer_BuyServices", "m_vecSellbackPurchaseEntries")]
     sellback_purchase_entries: UtlVector<SellbackPurchaseEntry>,
 }
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerHostageServices {
+pub struct PlayerHostageServices {
     #[field("CCSPlayer_HostageServices", "m_hCarriedHostage")]
     carried_hostage: Handle<BaseEntity>,
     #[field("CCSPlayer_HostageServices", "m_hCarriedHostageProp")]
@@ -3701,7 +3701,7 @@ pub struct WeaponPurchaseTracker {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerActionTrackingServices {
+pub struct PlayerActionTrackingServices {
     #[field("CCSPlayer_ActionTrackingServices", "m_hLastWeaponBeforeC4AutoSwitch")]
     last_weapon_before_c_4_auto_switch: Handle<BasePlayerWeapon>,
     #[field("CCSPlayer_ActionTrackingServices", "m_bIsRescuing")]
@@ -3714,7 +3714,7 @@ pub struct CsPlayerActionTrackingServices {
 
 #[derive(Schema)]
 #[scope("client.dll")]
-pub struct CsPlayerGlowServices {}
+pub struct PlayerGlowServices {}
 
 #[derive(Schema)]
 #[scope("client.dll")]
@@ -4078,7 +4078,7 @@ pub struct PlayerPawn {
     #[field("C_BasePlayerPawn", "m_bIsSwappingToPredictableController")]
     is_swapping_to_predictable_controller: bool,
     #[field("C_CSPlayerPawnBase", "m_pPingServices")]
-    ping_services: *const CsPlayerPingServices,
+    ping_services: *const PlayerPingServices,
     #[field("C_CSPlayerPawnBase", "m_pViewModelServices")]
     view_model_services: *const PlayerViewModelServices,
     #[field("C_CSPlayerPawnBase", "m_fRenderingClipPlane")]
@@ -4094,7 +4094,7 @@ pub struct PlayerPawn {
     #[field("C_CSPlayerPawnBase", "m_bCachedPlaneIsValid")]
     cached_plane_is_valid: bool,
     #[field("C_CSPlayerPawnBase", "m_pClippingWeapon")]
-    clipping_weapon: *const CsWeaponBase,
+    clipping_weapon: *const WeaponBase,
     #[field("C_CSPlayerPawnBase", "m_previousPlayerState")]
     previous_player_state: CsPlayerState,
     #[field("C_CSPlayerPawnBase", "m_flLastCollisionCeiling")]
@@ -4356,17 +4356,17 @@ pub struct PlayerPawn {
     #[field("C_CSPlayerPawnBase", "m_bKilledByHeadshot")]
     killed_by_headshot: bool,
     #[field("C_CSPlayerPawnBase", "m_hOriginalController")]
-    original_controller: Handle<CsPlayerController>,
+    original_controller: Handle<PlayerController>,
     #[field("C_CSPlayerPawn", "m_pBulletServices")]
-    bullet_services: *const CsPlayerBulletServices,
+    bullet_services: *const PlayerBulletServices,
     #[field("C_CSPlayerPawn", "m_pHostageServices")]
-    hostage_services: *const CsPlayerHostageServices,
+    hostage_services: *const PlayerHostageServices,
     #[field("C_CSPlayerPawn", "m_pBuyServices")]
-    buy_services: *const CsPlayerBuyServices,
+    buy_services: *const PlayerBuyServices,
     #[field("C_CSPlayerPawn", "m_pGlowServices")]
-    glow_services: *const CsPlayerGlowServices,
+    glow_services: *const PlayerGlowServices,
     #[field("C_CSPlayerPawn", "m_pActionTrackingServices")]
-    action_tracking_services: *const CsPlayerActionTrackingServices,
+    action_tracking_services: *const PlayerActionTrackingServices,
     #[field("C_CSPlayerPawn", "m_flHealthShotBoostExpirationTime")]
     health_shot_boost_expiration_time: GameTime,
     #[field("C_CSPlayerPawn", "m_flLastFiredWeaponTime")]
