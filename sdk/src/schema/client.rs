@@ -14,6 +14,7 @@ use crate::{
     },
     types::{EntityIndex, NetworkedQuantizedFloat, SplitScreenSlot, Transform, WorldGroupId},
 };
+use glam::Vec3;
 use schema::Schema;
 
 use super::{
@@ -302,9 +303,9 @@ pub struct CollisionProperty {
     #[field("CCollisionProperty", "m_collisionAttribute")]
     collision_attribute: VPhysicsCollisionAttribute,
     #[field("CCollisionProperty", "m_vecMins")]
-    mins: Vector,
+    mins: Vec3,
     #[field("CCollisionProperty", "m_vecMaxs")]
-    maxs: Vector,
+    maxs: Vec3,
     #[field("CCollisionProperty", "m_usSolidFlags")]
     us_solid_flags: u8,
     #[field("CCollisionProperty", "m_nSolidType")]
@@ -2078,7 +2079,7 @@ pub struct BasePlayerPawn {
     #[field("C_BasePlayerPawn", "m_flMouseSensitivity")]
     mouse_sensitivity: f32,
     #[field("C_BasePlayerPawn", "m_vOldOrigin")]
-    old_origin: Vector,
+    old_origin: Vec3,
     #[field("C_BasePlayerPawn", "m_flOldSimulationTime")]
     old_simulation_time: f32,
     #[field("C_BasePlayerPawn", "m_nLastExecutedCommandNumber")]
