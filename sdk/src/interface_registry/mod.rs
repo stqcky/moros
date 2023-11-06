@@ -48,7 +48,7 @@ impl InterfaceRegistry<'_> {
         let create_interface = unsafe {
             std::slice::from_raw_parts(
                 module
-                    .get_proc_address(&CREATE_INTERFACE_PROC_NAME)
+                    .get_proc_address(&*CREATE_INTERFACE_PROC_NAME)
                     .context("could not find CreateInterface procedure")?,
                 INSTRUCTION_SIZE,
             )

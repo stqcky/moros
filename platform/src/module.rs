@@ -1,7 +1,7 @@
 use crate::Result;
 
 pub trait PlatformModule {
-    fn get_proc_address<T>(&self, proc_name: &str) -> Option<*const T>;
+    fn get_proc_address<T, S: AsRef<str>>(&self, proc_name: S) -> Option<*const T>;
     fn free_library_and_exit_thread(&self, exit_code: u32);
     fn get_module_info(&self) -> Result<PlatformModuleInfo>;
 }

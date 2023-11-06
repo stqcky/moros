@@ -53,47 +53,47 @@ pub fn attach(module: WindowsModule) {
 // class CGlobalVars
 // {
 // public:
-//     float m_realtime; //0x0000 
-//     __int32 m_framecount; //0x0004 
-//     float N0000007D; //0x0008 
-//     float N00000087; //0x000C 
-//     __int32 m_maxclients; //0x0010 
-//     float m_intervalpertick; //0x0014 
-//     __int32 N0000007F; //0x0018 
-//     __int32 N0000008B; //0x001C 
-//     void* m_unkfunc; //0x0020 
-//     float N00000081; //0x0028 
-//     float m_curtime; //0x002C 
-//     float m_curtime2; //0x0030 
+//     float m_realtime; //0x0000
+//     __int32 m_framecount; //0x0004
+//     float N0000007D; //0x0008
+//     float N00000087; //0x000C
+//     __int32 m_maxclients; //0x0010
+//     float m_intervalpertick; //0x0014
+//     __int32 N0000007F; //0x0018
+//     __int32 N0000008B; //0x001C
+//     void* m_unkfunc; //0x0020
+//     float N00000081; //0x0028
+//     float m_curtime; //0x002C
+//     float m_curtime2; //0x0030
 //     char pad_0x0034[0xC]; //0x0034
-//     __int32 m_tickcount; //0x0040 
-//     float m_intervalpertick2; //0x0044 
-//     void* m_current_netchan; //0x0048 
+//     __int32 m_tickcount; //0x0040
+//     float m_intervalpertick2; //0x0044
+//     void* m_current_netchan; //0x0048
 //     char pad_0x0050[0x130]; //0x0050
-//     char* m_current_map; //0x0180 
-//     char* m_current_mapname; //0x0188 
-//  
+//     char* m_current_map; //0x0180
+//     char* m_current_mapname; //0x0188
+//
 // }; //Size=0x0190
 
 fn init() -> anyhow::Result<()> {
     render::setup()?;
 
-    // for player in ENTITY_SYSTEM.players() {
-    //     log::info!("name: {}", player.player_name());
-    //     log::info!("ping {}", player.ping());
-    //     log::info!(
-    //         "leader count: {}",
-    //         player
-    //             .inventory_services()
-    //             .unwrap()
-    //             .persona_data_public_commends_leader()
-    //     );
-    //
-    //     if let Some(pawn) = player.pawn() {
-    //         log::info!("pawn -> {:p}", pawn);
-    //         log::info!("team: {}", pawn.team_num());
-    //     }
-    // }
+    for player in ENTITY_SYSTEM.players() {
+        log::info!("name: {}", player.player_name());
+        // log::info!("ping {}", player.ping());
+        // log::info!(
+        //     "leader count: {}",
+        //     player
+        //         .inventory_services()
+        //         .unwrap()
+        //         .persona_data_public_commends_leader()
+        // );
+        //
+        // if let Some(pawn) = player.pawn() {
+        //     log::info!("pawn -> {:p}", pawn);
+        //     log::info!("team: {}", pawn.team_num());
+        // }
+    }
 
     let sig = signature::scan("client.dll", "40 53 48 81 EC ? ? ? ? 49 8B C1")?;
 
@@ -125,8 +125,9 @@ pub fn destroy() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[encrypt]
+// #[encrypt]
 fn panic_handler(info: &PanicInfo) {
+    log::error!("panic: {}", info.to_string());
     message_box(&"moros error", &info.to_string(), MB_OK);
 
     let _ = destroy();

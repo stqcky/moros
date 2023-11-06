@@ -14,10 +14,11 @@ use windows::Win32::{
     },
 };
 
-use crate::module::{PlatformModule, PlatformModuleInfo};
 use crate::Result;
-
-use self::strings::windows_string;
+use crate::{
+    module::{PlatformModule, PlatformModuleInfo},
+    win_string,
+};
 
 pub struct WindowsModule(pub HMODULE);
 
@@ -28,11 +29,13 @@ impl From<HMODULE> for WindowsModule {
 }
 
 impl PlatformModule for WindowsModule {
-    fn get_proc_address<T>(&self, proc_name: &str) -> Option<*const T> {
-        let proc_name = windows_string(proc_name);
-
+    fn get_proc_address<T, S>(&self, proc_name: S) -> Option<*const T>
+    where
+        S: AsRef<str>,
+    {
         unsafe {
-            GetProcAddress(self.0, proc_name).map(|proc| std::mem::transmute::<_, *const T>(proc))
+            GetProcAddress(self.0, win_string!(proc_name.as_ref()))
+                .map(|proc| std::mem::transmute::<_, *const T>(proc))
         }
     }
 
@@ -60,19 +63,18 @@ impl PlatformModule for WindowsModule {
     }
 }
 
-pub fn get_module_handle(module_name: &str) -> Result<impl PlatformModule> {
-    let module_name = windows_string(module_name);
-
-    let module: WindowsModule = unsafe { GetModuleHandleA(module_name)?.into() };
+pub fn get_module_handle<T>(module_name: T) -> Result<impl PlatformModule>
+where
+    T: AsRef<str>,
+{
+    let module: WindowsModule =
+        unsafe { GetModuleHandleA(win_string!(module_name.as_ref()))?.into() };
 
     Ok(module)
 }
 
 pub fn message_box(header: &str, content: &str, ty: MESSAGEBOX_STYLE) -> MESSAGEBOX_RESULT {
-    let header = windows_string(header);
-    let content = windows_string(content);
-
-    unsafe { MessageBoxA(None, content, header, ty) }
+    unsafe { MessageBoxA(None, win_string!(header), win_string!(content), ty) }
 }
 
 pub fn alloc_console() -> Result<()> {
