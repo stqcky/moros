@@ -12,6 +12,8 @@ use crate::{
 
 use lazy_static::lazy_static;
 
+use super::global_vars::GLOBAL_VARS;
+
 lazy_static! {
     pub static ref ENTITY_SYSTEM: &'static GameEntitySystem<'static> = RESOURCE_SERVICE
         .entity_system()
@@ -99,8 +101,7 @@ impl<'a> Iterator for GameEntitySystemPlayerControllerIter<'a> {
     type Item = &'a PlayerController;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // TODO: replace with value from global vars.
-        while self.index <= 64 {
+        while self.index <= GLOBAL_VARS.max_clients as u32 {
             if let Some(entity) = self.entity_system.get_entity_by_index(self.index) {
                 self.index += 1;
 

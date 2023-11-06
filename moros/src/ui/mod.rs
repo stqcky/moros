@@ -38,25 +38,21 @@ pub fn render(ctx: &Context, state: &mut State) {
             cheat::unload();
         }
 
-        // for player in ENTITY_SYSTEM.players() {
-        //     ui.label(player.player_name());
-        //
-        //     let Some(pawn) = player.pawn() else {
-        //         continue;
-        //     };
-        //
-        //     ui.label(format!(
-        //         "{} {} {}",
-        //         pawn.old_origin().x,
-        //         pawn.old_origin().y,
-        //         pawn.old_origin().z
-        //     ));
-        //
-        //     let screen = world_to_screen(&pawn.old_origin());
-        //
-        //     ui.label(format!("{} {} {}", screen.x, screen.y, screen.z));
-        //
-        //     ui.separator();
-        // }
+        for player in ENTITY_SYSTEM.players() {
+            ui.label(player.player_name());
+
+            let Some(pawn) = player.pawn() else {
+                continue;
+            };
+
+            ui.label(format!(
+                "{} {} {}",
+                pawn.old_origin().x,
+                pawn.old_origin().y,
+                pawn.old_origin().z
+            ));
+
+            ui.separator();
+        }
     });
 }
