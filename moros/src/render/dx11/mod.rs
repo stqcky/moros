@@ -1,6 +1,6 @@
 use anyhow::Context;
 use egui_directx11::DirectX11Renderer;
-use encryption::x;
+use encryption_procmacro::encrypt;
 use parking_lot::Mutex;
 use retour::GenericDetour;
 use std::sync::OnceLock;
@@ -25,8 +25,10 @@ use windows::{
 
 use crate::{
     hook,
-    ui::dx11::definitions::{IDXGISWAPCHAIN_PRESENT_INDEX, IDXGISWAPCHAIN_RESIZE_BUFFERS_INDEX},
-    unhook, vfunction,
+    render::dx11::definitions::{
+        IDXGISWAPCHAIN_PRESENT_INDEX, IDXGISWAPCHAIN_RESIZE_BUFFERS_INDEX,
+    },
+    ui, unhook, vfunction,
 };
 
 use self::definitions::{IDXGISwapChainPresent, IDXGISwapChainResizeBuffers};
@@ -42,6 +44,7 @@ static SWAPCHAIN_PRESENT: OnceLock<GenericDetour<IDXGISwapChainPresent>> = OnceL
 
 static RENDERER: OnceLock<Mutex<DirectX11Renderer>> = OnceLock::new();
 
+#[encrypt]
 fn create_swapchain(window: HWND) -> anyhow::Result<IDXGISwapChain> {
     let flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
     let feature_levels = [D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_10_0];
@@ -79,12 +82,13 @@ fn create_swapchain(window: HWND) -> anyhow::Result<IDXGISwapChain> {
             None,
             None,
         )
-        .context(x!("D3D11CreateDeviceAndSwapChain failed"))?
+        .context("D3D11CreateDeviceAndSwapChain failed")?
     };
 
-    swapchain.context(x!("could not create d3d11 swapchain"))
+    swapchain.context("could not create d3d11 swapchain")
 }
 
+#[encrypt]
 pub fn setup(window: HWND) -> anyhow::Result<()> {
     let swapchain = create_swapchain(window)?;
 
@@ -94,57 +98,64 @@ pub fn setup(window: HWND) -> anyhow::Result<()> {
     let swapchain_resize_buffers: IDXGISwapChainResizeBuffers =
         vfunction!(swapchain, IDXGISWAPCHAIN_RESIZE_BUFFERS_INDEX);
 
-    hook!(SWAPCHAIN_PRESENT, swapchain_present, swapchain_present_hk);
+    hook!(SWAPCHAIN_PRESENT, swapchain_present, swapchain_present_hk)
+        .context("could not hook SWAPCHAIN_PRESENT")?;
 
     hook!(
         SWAPCHAIN_RESIZE_BUFFERS,
         swapchain_resize_buffers,
         swapchain_resize_buffers_hk
-    );
+    )
+    .context("could not hook SWAPCHAIN_RESIZE_BUFFERS")?;
 
     Ok(())
 }
 
+#[encrypt]
 pub fn destroy() -> anyhow::Result<()> {
-    unhook!(SWAPCHAIN_PRESENT);
-    unhook!(SWAPCHAIN_RESIZE_BUFFERS);
+    unhook!(SWAPCHAIN_PRESENT).context("could not unhook SWAPCHAIN_PRESENT")?;
+    unhook!(SWAPCHAIN_RESIZE_BUFFERS).context("could not unhook SWAPCHAIN_RESIZE_BUFFERS")?;
 
     Ok(())
 }
 
+#[encrypt]
 fn swapchain_present_hk(swapchain: IDXGISwapChain, sync_interval: u32, flags: u32) -> HRESULT {
     let hook = SWAPCHAIN_PRESENT
         .get()
-        .expect(&x!("swapchain present hook is not initialized"));
+        .expect(&"swapchain present hook is not initialized");
 
     let mut renderer = RENDERER
         .get_or_init(|| {
             Mutex::new(
                 DirectX11Renderer::init_from_swapchain(&swapchain, egui::Context::default())
-                    .expect(&x!("could not create dx11 renderer")),
+                    .expect(&"could not create dx11 renderer"),
             )
         })
         .lock();
 
     let input = INPUT
         .get()
-        .expect(&x!("win32::INPUT is not initialized"))
+        .expect(&"win32::INPUT is not initialized")
         .lock()
         .collect_input()
-        .expect(&x!("could not collect input"));
+        .expect(&"could not collect input");
 
     if let Err(e) = renderer.paint(
         &swapchain,
-        &mut super::State::default(),
+        &mut ui::State::default(),
         input,
-        super::render,
+        |ctx, state| {
+            ui::render(ctx, state);
+        },
     ) {
-        log::error!("{}: {e}", x!("rendering error"));
+        log::error!("rendering error: {e}");
     }
 
     unsafe { hook.call(swapchain, sync_interval, flags) }
 }
 
+#[encrypt]
 fn swapchain_resize_buffers_hk(
     swapchain: IDXGISwapChain,
     buffer_count: u32,
@@ -155,13 +166,11 @@ fn swapchain_resize_buffers_hk(
 ) -> HRESULT {
     let hook = SWAPCHAIN_RESIZE_BUFFERS
         .get()
-        .expect(&x!("could not get SWAPCHAIN_RESIZE_BUFFERS hook"));
+        .expect(&"could not get SWAPCHAIN_RESIZE_BUFFERS hook");
 
     let mut renderer = RENDERER
         .get()
-        .expect(&x!(
-            "dx11 renderer is not initialized while resizing buffers"
-        ))
+        .expect(&"dx11 renderer is not initialized while resizing buffers")
         .lock();
 
     renderer
@@ -175,5 +184,5 @@ fn swapchain_resize_buffers_hk(
                 swapchain_flags,
             )
         })
-        .expect(&x!("could not resize buffers"))
+        .expect(&"could not resize buffers")
 }

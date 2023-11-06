@@ -1,7 +1,7 @@
 use crate::tier1::utlsymbollarge::UtlSymbolLarge;
 use crate::types::{SplitScreenSlot, VariantBase, WorldGroupId};
 
-use crate::schema::SCHEMA_SYSTEM;
+use crate::interfaces::schema_system::schema_system::SCHEMA_SYSTEM;
 use schema::Schema;
 
 use super::networksystem::ChangeAccessorFieldPathIndex;

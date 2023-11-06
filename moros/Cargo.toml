@@ -7,9 +7,11 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+memory = { path = "../memory/memory" }
+platform = { path = "../platform" }
 encryption = { path = "../encryption/encryption" }
+encryption-procmacro = { path = "../encryption/encryption-procmacro" }
 sdk = { path = "../sdk" }
-cstruct = { path = "../cstruct" }
 egui-directx11 = { path = "../egui/egui-directx11" }
 egui-win32 = { path="../egui/egui-win32" }
 log = "0.4.20"

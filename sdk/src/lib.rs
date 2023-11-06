@@ -4,7 +4,6 @@ pub mod ehandle;
 pub mod interface_registry;
 pub mod interfaces;
 pub mod math;
-pub mod platform;
 pub mod resourcefile;
 pub mod resourcesystem;
 pub mod schema;

@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use encryption::x;
+use encryption::encryption_procmacro::encrypt;
 
 pub struct UtlVector<T> {
     size: isize,
@@ -12,6 +12,7 @@ unsafe impl<T> Sync for UtlVector<T> {}
 impl<T> Index<isize> for UtlVector<T> {
     type Output = T;
 
+    #[encrypt]
     fn index(&self, index: isize) -> &Self::Output {
         assert!(index < self.size);
 
@@ -20,7 +21,7 @@ impl<T> Index<isize> for UtlVector<T> {
                 .offset(index)
                 .read()
                 .as_ref()
-                .expect(&x!("CUtlVector: element not found"))
+                .expect(&"CUtlVector: element not found")
         }
     }
 }

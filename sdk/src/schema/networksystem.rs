@@ -1,4 +1,4 @@
-use crate::schema::SCHEMA_SYSTEM;
+use crate::interfaces::schema_system::schema_system::SCHEMA_SYSTEM;
 use schema::Schema;
 
 // scope networksystem.dll

@@ -183,6 +183,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "convert_case"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -261,15 +270,6 @@ dependencies = [
  "core-graphics 0.19.2",
  "libc",
  "objc",
-]
-
-[[package]]
-name = "cstruct"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.38",
 ]
 
 [[package]]
@@ -405,6 +405,7 @@ dependencies = [
 name = "encryption-procmacro"
 version = "0.1.0"
 dependencies = [
+ "litrs",
  "proc-macro2",
  "quote",
  "rand",
@@ -657,6 +658,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da2479e8c062e40bf0066ffa0bc823de0a9368974af99c9f6df941d2c231e03f"
 
 [[package]]
+name = "litrs"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4ce301924b7887e9d637144fdade93f9dfff9b60981d4ac161db09720d39aa5"
+dependencies = [
+ "proc-macro2",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -715,6 +725,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "memory"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "encryption",
+ "encryption-procmacro",
+ "iced-x86",
+ "platform",
+ "regex",
+ "thiserror",
+ "windows",
+]
+
+[[package]]
+name = "memory_macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.38",
+]
+
+[[package]]
 name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -748,19 +781,22 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
- "cstruct",
  "dotenvy_macro",
  "egui",
  "egui-directx11",
  "egui-win32",
  "encryption",
+ "encryption-procmacro",
  "iced-x86",
  "lazy_static",
  "log",
+ "memory",
  "parking_lot 0.12.1",
+ "platform",
  "pretty_env_logger",
  "regex",
  "retour",
+ "sdk",
  "thiserror",
  "windows",
 ]
@@ -974,6 +1010,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "26072860ba924cbfa98ea39c8c19b4dd6a4a25423dbdf219c1eca91aa0cf6964"
 
 [[package]]
+name = "platform"
+version = "0.1.0"
+dependencies = [
+ "thiserror",
+ "windows",
+]
+
+[[package]]
 name = "ppv-lite86"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1166,6 +1210,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
+name = "sdk"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "convert_case",
+ "encryption",
+ "iced-x86",
+ "lazy_static",
+ "log",
+ "memory",
+ "memory_macros",
+ "platform",
+ "regex",
+ "schema",
+ "thiserror",
+ "windows",
+]
+
+[[package]]
 name = "slice-pool2"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1293,6 +1357,12 @@ name = "unicode-ident"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
+
+[[package]]
+name = "unicode-segmentation"
+version = "1.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1dd624098567895118886609431a7c3b8f516e41d30e0643f03d94592a147e36"
 
 [[package]]
 name = "version_check"

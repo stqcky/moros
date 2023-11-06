@@ -1,0 +1,23 @@
+[package]
+name = "memory"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+encryption-procmacro = { path = "../../encryption/encryption-procmacro" }
+encryption = { path = "../../encryption/encryption" }
+platform = { path = "../../platform" }
+anyhow = { workspace = true }
+iced-x86 = "1.20.0"
+regex = "1.10.2"
+thiserror = { workspace = true }
+
+[dependencies.windows]
+workspace = true
+features = [
+    "Win32_Foundation",
+    "Win32_System_SystemServices",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_Console",
+    "Win32_System_LibraryLoader"
+]

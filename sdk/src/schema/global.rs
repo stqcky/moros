@@ -1,7 +1,7 @@
 use crate::math::qangle::QAngle;
-use crate::math::vector::{Vector, Vector2D};
+use crate::math::vector::Vector2D;
 
-use crate::schema::SCHEMA_SYSTEM;
+use crate::interfaces::schema_system::schema_system::SCHEMA_SYSTEM;
 use crate::tier1::utlstringtoken::UtlStringToken;
 use crate::types::{HScript, NetworkedQuantizedFloat, VariantBase, WorldGroupId};
 use schema::Schema;

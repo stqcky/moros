@@ -1,11 +1,21 @@
-use crate::tier1::{utltshash::UtlTSHash, utlvector::UtlVector};
-use cstruct::{vfunc, vmt, C};
+use memory_macros::{vfunc, vmt, C};
+
+use crate::{
+    interfaces::create_interface,
+    tier1::{utltshash::UtlTSHash, utlvector::UtlVector},
+};
 use std::{
-    borrow::Cow,
     ffi::{c_char, c_void},
     marker::PhantomData,
     mem::ManuallyDrop,
 };
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref SCHEMA_SYSTEM: &'static SchemaSystem<'static> =
+        create_interface!("schemasystem.dll", "SchemaSystem");
+}
 
 #[vmt]
 pub struct SchemaSystem<'a> {
@@ -44,9 +54,7 @@ impl<'a> SchemaSystem<'_> {
 #[vmt]
 #[derive(C, Clone, Copy)]
 pub struct SchemaSystemTypeScope<'a> {
-    #[str]
     module_name: [c_char; 256],
-
     __pad1: [u8; 0x47e],
     pub classes: UtlTSHash<'a, *const SchemaClass<'a>>,
     __pad2: [u8; 0x2808],
@@ -100,8 +108,6 @@ pub enum AtomicCategory {
 pub struct SchemaTypeArrayT<'a> {
     pub size: u32,
     unknown: u32,
-
-    #[ptr]
     element_type: *const SchemaType<'a>,
 }
 
@@ -109,8 +115,6 @@ pub struct SchemaTypeArrayT<'a> {
 #[derive(C)]
 pub struct SchemaTypeAtomicT<'a> {
     gap: [u64; 2],
-
-    #[ptr]
     template_typename: *const SchemaType<'a>,
 }
 
@@ -138,13 +142,8 @@ pub struct SchemaTypeAtomicI {
 #[repr(C)]
 #[derive(C)]
 pub union SchemaTypeUnion<'a> {
-    #[ptr]
     schema_type: *const SchemaType<'a>,
-
-    #[ptr]
     class_info: *const SchemaClassInfo<'a>,
-
-    #[ptr]
     enum_info: *const SchemaEnum<'a>,
 
     pub array: ManuallyDrop<SchemaTypeArrayT<'a>>,
@@ -156,10 +155,7 @@ pub union SchemaTypeUnion<'a> {
 #[vmt]
 #[derive(C)]
 pub struct SchemaType<'a> {
-    #[str]
     name: *const c_char,
-
-    #[ptr]
     type_scope: *const SchemaSystemTypeScope<'a>,
 
     pub type_category: TypeCategory,
@@ -171,10 +167,7 @@ pub struct SchemaType<'a> {
 #[repr(C)]
 #[derive(C)]
 pub struct SchemaMetadataEntryData {
-    #[str]
     name: *const c_char,
-
-    #[ptr]
     value: *const SchemaNetworkValue,
 }
 
@@ -185,16 +178,10 @@ pub struct SchemaMetadataSetData {
 #[repr(C)]
 #[derive(C)]
 pub struct SchemaClassField<'a> {
-    #[str]
     name: *const c_char,
-
-    #[ptr]
     ty: *const SchemaType<'a>,
-
     pub single_inheritance_offset: i32,
     metadata_size: i32,
-
-    #[ptr]
     metadata: *const SchemaMetadataEntryData,
 }
 
@@ -210,18 +197,13 @@ pub struct SchemaStaticField<'a> {
 #[derive(C)]
 pub struct SchemaBaseClassInfo<'a> {
     offset: u32,
-
-    #[ptr]
     class: *const SchemaClassInfo<'a>,
 }
 
 #[vmt]
 #[derive(C)]
 pub struct SchemaClassInfo<'a> {
-    #[str]
     name: *const c_char,
-
-    #[str]
     module: *const c_char,
 
     pub size: i32,
@@ -234,32 +216,21 @@ pub struct SchemaClassInfo<'a> {
     __unknown2: i16,
     __unknown3: i16,
 
-    fields: *const SchemaClassField<'a>,
-
-    #[ptr]
+    _fields: *const SchemaClassField<'a>,
     static_fields: *const SchemaStaticField<'a>,
-
-    #[ptr]
     schema_parent: *const SchemaBaseClassInfo<'a>,
-
     __pad: [u8; 0x10],
 
-    #[ptr]
     metadata: *const SchemaMetadataSetData,
-
-    #[ptr]
     type_scope: *const SchemaSystemTypeScope<'a>,
-
-    #[ptr]
     schema_type: *const SchemaType<'a>,
-
     class_flags: SchemaClassFlags,
 }
 
 impl SchemaClassInfo<'_> {
     pub fn fields(&self) -> SchemaClassFields {
         SchemaClassFields {
-            fields: self.fields,
+            fields: self._fields,
             size: self.alignment,
             index: 0,
         }
@@ -297,9 +268,7 @@ union SchemaEnumVariantData {
 #[repr(C)]
 #[derive(C)]
 pub struct SchemaEnumVariant {
-    #[str]
     name: *const c_char,
-
     value: SchemaEnumVariantData,
     __pad: [u8; 0x10],
 }
@@ -313,10 +282,7 @@ pub struct SchemaEnumInfo {
 #[vmt]
 #[derive(C, Clone, Copy)]
 pub struct SchemaEnum<'a> {
-    #[str]
     name: *const c_char,
-
-    #[str]
     module_name: *const c_char,
 
     pub alignment: i8,
@@ -324,11 +290,10 @@ pub struct SchemaEnum<'a> {
     pub size: i16,
     pub flags: i16,
 
-    variants: *const SchemaEnumVariant,
+    _variants: *const SchemaEnumVariant,
 
     __pad_0x1: [u8; 0x8],
 
-    #[ptr]
     type_scope: *const SchemaSystemTypeScope<'a>,
 
     __pad_0x2: [u8; 0x8],
@@ -338,7 +303,7 @@ pub struct SchemaEnum<'a> {
 impl SchemaEnum<'_> {
     pub fn variants(&self) -> SchemaEnumVariants {
         SchemaEnumVariants {
-            variants: self.variants,
+            variants: self._variants,
             size: self.size,
             index: 0,
             _phantom: Default::default(),
@@ -383,13 +348,8 @@ enum SchemaClassFlags {
 #[repr(C)]
 #[derive(C, Clone, Copy)]
 pub struct SchemaClass<'a> {
-    #[ptr]
     parent: *const SchemaClass<'a>,
-
-    #[str]
     name: *const c_char,
-
-    #[str]
     module_name: *const c_char,
 
     unknown: *const c_char,
@@ -397,8 +357,6 @@ pub struct SchemaClass<'a> {
     class_info: usize,
 
     this_module_binding_pointer: usize,
-
-    #[ptr]
     schema_type: *const SchemaType<'a>,
 }
 

@@ -1,12 +1,13 @@
+use crate::interfaces::client::entity_system::ENTITY_SYSTEM;
 use crate::{
     color::Color,
     ehandle::{EntityHandle, Handle},
+    interfaces::schema_system::schema_system::SCHEMA_SYSTEM,
     math::{
         matrix::Matrix3X4,
         qangle::QAngle,
         vector::{Vector, Vector4D},
     },
-    schema::SCHEMA_SYSTEM,
     tier1::{
         utlstring::UtlString, utlstringtoken::UtlStringToken, utlsymbollarge::UtlSymbolLarge,
         utlvector::UtlVector,

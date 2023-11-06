@@ -3,15 +3,15 @@ name = "sdk"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+encryption = { path = "../encryption/encryption" }
+platform = { path = "../platform" }
+memory = { path = "../memory/memory" }
+memory_macros = { path = "../memory/memory_macros" }
+schema = { path = "schema" }
 iced-x86 = "1.20.0"
 lazy_static = "1.4.0"
 thiserror = "1.0.50"
-encryption = { path = "../encryption/encryption/" }
-cstruct = { path = "../cstruct/" }
-schema = { path = "../schema/" }
 anyhow = "1.0.75"
 log = "0.4.20"
 convert_case = "0.6.0"

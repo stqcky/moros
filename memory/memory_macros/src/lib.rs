@@ -4,7 +4,7 @@ mod cstruct;
 mod vfunc;
 mod vmt;
 
-#[proc_macro_derive(C, attributes(str, ptr))]
+#[proc_macro_derive(C)]
 pub fn cstruct(input: TokenStream) -> TokenStream {
     cstruct::cstruct_impl(input)
 }

@@ -1,29 +1,31 @@
-use crate::{interface_registry::InterfaceRegistry, platform::get_module_handle};
+use crate::interface_registry::InterfaceRegistry;
 use anyhow::Context;
-use encryption::x;
+use encryption::encryption_procmacro::encrypt;
+use platform::windows::get_module_handle;
 
 pub mod client;
 pub mod engine;
 pub mod schema_system;
 
-pub fn create_interface<'a, T>(module: &'a str, interface: &'a str) -> anyhow::Result<&'static T> {
-    let module_handle = get_module_handle(module)
-        .context(format!("{}: {module}", x!("could not get module handle")))?;
+#[encrypt]
+pub fn create_interface_internal<'a, T>(
+    module: &'a str,
+    interface: &'a str,
+) -> anyhow::Result<&'static T> {
+    let module_handle =
+        get_module_handle(module).context(format!("could not get module handle: {module}"))?;
 
-    let mut registry = InterfaceRegistry::new(module_handle).context(format!(
-        "{}: {module}",
-        x!("could not initialize interface registry")
-    ))?;
+    let mut registry = InterfaceRegistry::new(module_handle)
+        .context(format!("could not initialize interface registry: {module}",))?;
 
     Ok(registry
         .create::<T>(interface)
-        .context(format!("{}: {interface}", x!("could not create interface")))?)
+        .context(format!("could not create interface: {interface}"))?)
 }
 
-#[macro_export]
 macro_rules! create_interface {
     ($mod:literal, $interface:literal) => {
-        $crate::interfaces::create_interface(
+        $crate::interfaces::create_interface_internal(
             &encryption::x!($mod),
             &encryption::x!($interface),
         )
@@ -34,3 +36,4 @@ macro_rules! create_interface {
         ))
     };
 }
+pub(crate) use create_interface;
