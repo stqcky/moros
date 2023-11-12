@@ -4,11 +4,13 @@ use platform::windows::find_window;
 
 mod win32;
 mod dx11;
+mod fonts;
 
 #[encrypt]
 pub fn setup() -> anyhow::Result<()> {
     let window = find_window().context("could not find window")?;
 
+    fonts::setup()?;
     win32::setup(window)?;
     dx11::setup(window)?;
 

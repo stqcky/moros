@@ -17,7 +17,6 @@ members = [
 windows = "0.51.1"
 thiserror = "1.0.50"
 anyhow = "1.0.75"
-log = "0.4.20"
 
 [profile.release]
 debug = false

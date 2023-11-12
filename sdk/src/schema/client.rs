@@ -17,6 +17,7 @@ use crate::{
 use glam::Vec3;
 use schema::Schema;
 
+use super::global::{InButtonState, CommandContext, NetworkOriginCellCoordQuantizedVector, LifeState};
 use super::{
     global::{
         AttachmentHandle, AttributeProviderTypes, ClientAlphaProperty, CountdownTimer,
@@ -163,25 +164,6 @@ pub struct GameSceneNodeHandle {
 }
 
 #[derive(Schema)]
-#[scope("!GlobalTypes")]
-pub struct NetworkOriginCellCoordQuantizedVector {
-    #[field("CNetworkOriginCellCoordQuantizedVector", "m_cellX")]
-    cell_x: u16,
-    #[field("CNetworkOriginCellCoordQuantizedVector", "m_cellY")]
-    cell_y: u16,
-    #[field("CNetworkOriginCellCoordQuantizedVector", "m_cellZ")]
-    cell_z: u16,
-    #[field("CNetworkOriginCellCoordQuantizedVector", "m_nOutsideWorld")]
-    outside_world: u16,
-    #[field("CNetworkOriginCellCoordQuantizedVector", "m_vecX")]
-    x: NetworkedQuantizedFloat,
-    #[field("CNetworkOriginCellCoordQuantizedVector", "m_vecY")]
-    y: NetworkedQuantizedFloat,
-    #[field("CNetworkOriginCellCoordQuantizedVector", "m_vecZ")]
-    z: NetworkedQuantizedFloat,
-}
-
-#[derive(Schema)]
 #[scope("client.dll")]
 pub struct GameSceneNode {
     #[field("CGameSceneNode", "m_nodeToWorld")]
@@ -203,7 +185,7 @@ pub struct GameSceneNode {
     #[field("CGameSceneNode", "m_flScale")]
     scale: f32,
     #[field("CGameSceneNode", "m_vecAbsOrigin")]
-    abs_origin: Vector,
+    abs_origin: Vec3,
     #[field("CGameSceneNode", "m_angAbsRotation")]
     abs_rotation: QAngle,
     #[field("CGameSceneNode", "m_flAbsScale")]
@@ -1649,13 +1631,6 @@ pub struct PlayerCameraServices {
 }
 
 #[derive(Schema)]
-#[scope("!GlobalTypes")]
-pub struct InButtonState {
-    #[field("CInButtonState", "m_pButtonStates")]
-    button_states: [u64; 3],
-}
-
-#[derive(Schema)]
 #[scope("client.dll")]
 pub struct PlayerMovementServices {
     #[field("CPlayerPawnComponent", "__m_pChainEntity")]
@@ -1720,14 +1695,6 @@ pub struct Sky3Dparams {
     world_group_id: WorldGroupId,
 }
 
-#[derive(Schema)]
-#[scope("!GlobalTypes")]
-pub struct CommandContext {
-    #[field("C_CommandContext", "needsprocessing")]
-    needsprocessing: bool,
-    #[field("C_CommandContext", "command_number")]
-    command_number: i32,
-}
 
 #[derive(Schema)]
 #[scope("client.dll")]
@@ -1755,7 +1722,7 @@ pub struct BasePlayerPawn {
     #[field("C_BaseEntity", "m_iHealth")]
     health: i32,
     #[field("C_BaseEntity", "m_lifeState")]
-    life_state: u8,
+    life_state: LifeState,
     #[field("C_BaseEntity", "m_bTakesDamage")]
     takes_damage: bool,
     #[field("C_BaseEntity", "m_nTakeDamageFlags")]

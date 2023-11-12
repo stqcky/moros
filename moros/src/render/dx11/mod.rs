@@ -1,4 +1,5 @@
 use anyhow::Context;
+use egui::{FontData, FontDefinitions, FontFamily, FontId};
 use egui_directx11::DirectX11Renderer;
 use encryption_procmacro::encrypt;
 use parking_lot::Mutex;
@@ -24,16 +25,18 @@ use windows::{
 };
 
 use crate::{
-    hook,
+    features, hook,
     render::dx11::definitions::{
         IDXGISWAPCHAIN_PRESENT_INDEX, IDXGISWAPCHAIN_RESIZE_BUFFERS_INDEX,
     },
-    ui, unhook, vfunction,
+    settings::SETTINGS,
+    ui::{self},
+    unhook, vfunction,
 };
 
 use self::definitions::{IDXGISwapChainPresent, IDXGISwapChainResizeBuffers};
 
-use super::win32::INPUT;
+use super::{fonts::FONTS, win32::INPUT};
 
 mod definitions;
 
@@ -119,7 +122,7 @@ pub fn destroy() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[encrypt]
+#[cfg_attr(not(debug_assertions), encrypt)]
 fn swapchain_present_hk(swapchain: IDXGISwapChain, sync_interval: u32, flags: u32) -> HRESULT {
     let hook = SWAPCHAIN_PRESENT
         .get()
@@ -141,14 +144,24 @@ fn swapchain_present_hk(swapchain: IDXGISwapChain, sync_interval: u32, flags: u3
         .collect_input()
         .expect(&"could not collect input");
 
-    if let Err(e) = renderer.paint(
-        &swapchain,
-        &mut ui::State::default(),
-        input,
-        |ctx, state| {
-            ui::render(ctx, state);
-        },
-    ) {
+    let mut settings = SETTINGS.lock();
+
+    if let Err(e) = renderer.paint(&swapchain, &mut settings, input, |ctx, settings| {
+        let Some(fonts) = &*FONTS.lock() else {
+            log::error!("fonts are not set up");
+            return;
+        };
+
+        ctx.set_fonts(fonts.clone()); // retarded
+
+        ctx.tessellation_options_mut(|options| {
+            options.feathering = false;
+        });
+
+        features::visuals::esp::render(ctx.debug_painter(), &settings.visuals.esp);
+
+        ui::render(ctx, settings);
+    }) {
         log::error!("rendering error: {e}");
     }
 

@@ -2824,12 +2824,13 @@ pub enum CsWeaponMode {
     WeaponModeMax,
 }
 
+#[derive(PartialEq, PartialOrd)]
 pub enum LifeState {
-    LifeAlive,
-    LifeDying,
-    LifeDead,
-    LifeRespawnable,
-    LifeRespawning,
+    Alive,
+    Dying,
+    Dead,
+    Respawnable,
+    Respawning,
 }
 
 pub enum SurroundingBoundsType {
@@ -3223,4 +3224,39 @@ pub struct CountdownTimer {
 pub struct ParticleIndex {
     #[field("ParticleIndex_t", "m_Value")]
     value: i32,
+}
+
+#[derive(Schema)]
+#[scope("!GlobalTypes")]
+pub struct NetworkOriginCellCoordQuantizedVector {
+    #[field("CNetworkOriginCellCoordQuantizedVector", "m_cellX")]
+    cell_x: u16,
+    #[field("CNetworkOriginCellCoordQuantizedVector", "m_cellY")]
+    cell_y: u16,
+    #[field("CNetworkOriginCellCoordQuantizedVector", "m_cellZ")]
+    cell_z: u16,
+    #[field("CNetworkOriginCellCoordQuantizedVector", "m_nOutsideWorld")]
+    outside_world: u16,
+    #[field("CNetworkOriginCellCoordQuantizedVector", "m_vecX")]
+    x: NetworkedQuantizedFloat,
+    #[field("CNetworkOriginCellCoordQuantizedVector", "m_vecY")]
+    y: NetworkedQuantizedFloat,
+    #[field("CNetworkOriginCellCoordQuantizedVector", "m_vecZ")]
+    z: NetworkedQuantizedFloat,
+}
+
+#[derive(Schema)]
+#[scope("!GlobalTypes")]
+pub struct InButtonState {
+    #[field("CInButtonState", "m_pButtonStates")]
+    button_states: [u64; 3],
+}
+
+#[derive(Schema)]
+#[scope("!GlobalTypes")]
+pub struct CommandContext {
+    #[field("C_CommandContext", "needsprocessing")]
+    needsprocessing: bool,
+    #[field("C_CommandContext", "command_number")]
+    command_number: i32,
 }

@@ -1,6 +1,9 @@
+use glam::{Vec2, Vec3, Vec4, Vec4Swizzles};
 use lazy_static::lazy_static;
 
-use crate::interfaces::create_interface;
+use crate::interfaces::{create_interface, engine::engine_client::ENGINE};
+
+use super::render_game_system::RENDER_GAME_SYSTEM;
 
 lazy_static! {
     pub static ref CLIENT: &'static Source2Client =
@@ -8,3 +11,28 @@ lazy_static! {
 }
 
 pub struct Source2Client {}
+
+impl Source2Client {
+    pub fn world_to_screen(&self, position: &Vec3) -> Option<Vec2> {
+        let matrix = RENDER_GAME_SYSTEM.get_view_matrix();
+
+        let clip_space = matrix * Vec4::new(position.x, position.y, position.z, 1.0);
+
+        if clip_space.w < 0.01 {
+            return None;
+        }
+
+        let ndc_space = clip_space.xy() / clip_space.w;
+
+        let (screen_width, screen_height) = ENGINE.get_screen_dimensions();
+
+        let view_offset = Vec2::new(screen_width / 2.0, screen_height / 2.0);
+
+        let window_space = Vec2::new(
+            view_offset.x + ndc_space.x / 2.0 * screen_width,
+            view_offset.y - ndc_space.y / 2.0 * screen_height,
+        );
+
+        Some(window_space.round())
+    }
+}

@@ -10,3 +10,10 @@ macro_rules! x {
         $crate::xor::xor($crate::encryption_procmacro::x!($str))
     };
 }
+
+#[macro_export]
+macro_rules! encrypt {
+    () => {
+        #[cfg_attr(not(debug_assertions), $crate::encryption_procmacro::encrypt)]
+    };
+}

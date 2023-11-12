@@ -7,15 +7,11 @@ use std::{
     time::Duration,
 };
 
-use anyhow::Context;
-use dotenvy_macro::dotenv;
-use encryption::x;
-use memory::signature;
 use platform::{
     module::PlatformModule,
     windows::{alloc_console, free_console, message_box, WindowsModule},
 };
-use sdk::interfaces::client::{entity_system::ENTITY_SYSTEM, global_vars::GLOBAL_VARS};
+use sdk::interfaces::{client::entity_system::ENTITY_SYSTEM, schema_system::schema_system::SCHEMA_SYSTEM};
 use windows::Win32::UI::WindowsAndMessaging::MB_OK;
 
 use encryption_procmacro::encrypt;
@@ -53,7 +49,7 @@ pub fn attach(module: WindowsModule) {
 fn init() -> anyhow::Result<()> {
     render::setup()?;
 
-    sdk::dump::interfaces()?;
+    // sdk::dump::interfaces()?;
 
     while !UNLOAD.load(Ordering::Relaxed) {
         std::thread::sleep(Duration::from_millis(500));
@@ -70,6 +66,8 @@ pub fn unload() {
 pub fn destroy() -> anyhow::Result<()> {
     render::destroy()?;
 
+    std::thread::sleep(Duration::from_millis(100));
+
     let module = MODULE.get().expect(&"module handle is null");
 
     if free_console().is_err() {
@@ -84,7 +82,7 @@ pub fn destroy() -> anyhow::Result<()> {
 // #[encrypt]
 fn panic_handler(info: &PanicInfo) {
     log::error!("panic: {}", info.to_string());
-    message_box(&"moros error", &info.to_string(), MB_OK);
+    message_box(&info.to_string(), &"moros error", MB_OK);
 
     let _ = destroy();
 }

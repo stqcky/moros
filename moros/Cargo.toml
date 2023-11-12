@@ -22,7 +22,7 @@ dotenvy_macro = "0.15.7"
 anyhow = "1.0.75"
 chrono = "0.4.31"
 retour = "0.3.1"
-egui = "0.22.0"
+egui = { version = "0.22.0", features = [ "mint" ] }
 parking_lot = "0.12.1"
 regex = "1.10.2"
 iced-x86 = "1.20.0"

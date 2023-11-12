@@ -1,8 +1,19 @@
 use std::marker::PhantomData;
 
+use glam::{Affine3A, Quat, Vec3};
+
 pub type SplitScreenSlot = i32;
 
-pub struct Transform {}
+pub struct Transform {
+    position: Vec3,
+    orientation: Quat,
+}
+
+impl Transform {
+    pub fn affine(&self) -> Affine3A {
+        Affine3A::from_rotation_translation(self.orientation, self.position)
+    }
+}
 
 pub type MeshDrawPrimitiveFlags = i32;
 

@@ -3,3 +3,4 @@ pub mod client_ui;
 pub mod client_prediction;
 pub mod entity_system;
 pub mod global_vars;
+pub mod render_game_system;

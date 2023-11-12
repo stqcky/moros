@@ -51,6 +51,7 @@ where
     })
 }
 
+#[derive(Debug)]
 pub struct Signature {
     pub address: usize,
     pub rip: usize,
@@ -61,6 +62,10 @@ impl Signature {
     pub fn offset(mut self, offset: usize) -> Self {
         self.address += offset;
         self
+    }
+
+    pub fn absolute(&self) -> usize {
+        self.address + self.module_base
     }
 
     #[encrypt]
@@ -76,7 +81,7 @@ impl Signature {
         if instruction.mnemonic() != Mnemonic::Call
             || instruction.op0_kind() != OpKind::NearBranch64
         {
-            bail!("expected call instruction, got: {:?}", instruction);
+            bail!("expected call instruction, got: {}", instruction);
         }
 
         let address = instruction.near_branch64() + self.module_base as u64;

@@ -7,6 +7,7 @@ mod hook;
 mod render;
 pub mod ui;
 mod vmt;
+mod settings;
 
 #[no_mangle]
 #[allow(non_snake_case)]
