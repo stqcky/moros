@@ -5,9 +5,9 @@ mod cheat;
 mod features;
 mod hook;
 mod render;
+mod settings;
 pub mod ui;
 mod vmt;
-mod settings;
 
 #[no_mangle]
 #[allow(non_snake_case)]

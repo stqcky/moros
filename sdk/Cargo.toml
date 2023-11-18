@@ -19,6 +19,10 @@ regex = "1.10.2"
 chrono = "0.4.31"
 glam = "0.24.2"
 
+[lints.clippy]
+useless_transmute = "allow"
+needless_borrow = "allow"
+
 [dependencies.windows]
 version = "0.51.1"
 features = [

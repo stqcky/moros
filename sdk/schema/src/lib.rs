@@ -34,7 +34,7 @@ fn generate_getters(fields: Fields, scope: &LitStr) -> Vec<TokenStream2> {
     fields
         .iter()
         .map(|field| {
-            let (schema_class_name, schema_field_name) = get_field_info(&field);
+            let (schema_class_name, schema_field_name) = get_field_info(field);
             let field_name = field.ident.clone().expect("expected field to have a name");
 
             let field_ty = &field.ty;
@@ -180,7 +180,7 @@ fn generate_ptr_getter(
     offset: TokenStream2,
     field_name: Ident,
     field_ty: &Type,
-    ptr_to: &Box<Type>,
+    ptr_to: &Type,
 ) -> TokenStream2 {
     quote! {
         pub fn #field_name(&self) -> Option<&#ptr_to> {
@@ -224,24 +224,21 @@ fn get_field_info(field: &Field) -> (LitStr, LitStr) {
         panic!("#[field] attribute requires 2 arguments");
     };
 
-    let args = meta
+    let args: Vec<_> = meta
         .parse_args_with(Punctuated::<LitStr, Token![,]>::parse_terminated)
-        .expect("could not parse #[field] argument list");
-
-    let class = args
+        .expect("could not parse #[field] argument list")
         .iter()
-        .nth(0)
-        .expect("#[field] attribute missing class name");
+        .take(2)
+        .cloned()
+        .collect();
 
-    let field = args
-        .iter()
-        .nth(1)
-        .expect("#[field] attribute missing field name");
+    let class = args.get(0).expect("#[field] attribute missing class name");
+    let field = args.get(1).expect("#[field] attribute missing field name");
 
     (class.clone(), field.clone())
 }
 
-fn get_class_scope(attributes: &Vec<Attribute>) -> LitStr {
+fn get_class_scope(attributes: &[Attribute]) -> LitStr {
     let scope_attr = attributes
         .iter()
         .find(|attr| attr.path().is_ident("scope"))

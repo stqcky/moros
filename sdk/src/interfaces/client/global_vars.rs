@@ -39,7 +39,12 @@ fn find_global_vars() -> anyhow::Result<&'static GlobalVars> {
         .context("could not get global vars virtual address")?
         as *const *const GlobalVars;
 
-    unsafe { globals.read().as_ref().context("global vars pointer is null") }
+    unsafe {
+        globals
+            .read()
+            .as_ref()
+            .context("global vars pointer is null")
+    }
 }
 
 #[encrypt]

@@ -301,7 +301,7 @@ impl InputManager {
     pub fn get_screen_size(&self) -> Pos2 {
         let mut rect = RECT::default();
         unsafe {
-            GetClientRect(self.hwnd, &mut rect);
+            GetClientRect(self.hwnd, &mut rect).unwrap();
         }
 
         Pos2::new(

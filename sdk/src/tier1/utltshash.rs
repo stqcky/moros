@@ -66,7 +66,7 @@ pub struct UtlTSHash<'a, T, Key = u64> {
 }
 
 impl<T> UtlTSHash<'_, T, u64> {
-    pub fn block_size(&self) -> i32 {
+    pub fn blocks_per_blob(&self) -> i32 {
         self.entry_memory.blocks_per_blob
     }
 
@@ -132,10 +132,10 @@ where
             count: self.count(),
             total_index: 0,
 
-            block_size: self.block_size(),
+            block_size: self.blocks_per_blob(),
             block_index: 0,
 
-            element: self.buckets.unallocated_data.clone(),
+            element: self.buckets.unallocated_data,
 
             _phantom: Default::default(),
         }

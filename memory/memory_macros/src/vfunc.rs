@@ -180,8 +180,5 @@ fn convert_to_c_ptr(ident: &Ident, ref_type: &TypePath) -> (Expr, Type) {
 }
 
 fn is_type_ref(ty: &Type) -> bool {
-    match ty {
-        Type::Reference(_) => true,
-        _ => false,
-    }
+    matches!(ty, Type::Reference(_))
 }

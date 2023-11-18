@@ -1,4 +1,4 @@
-use egui::{panel::Side, Context, SidePanel, Ui, Window};
+use egui::{Context, Ui, Window};
 
 use crate::{
     cheat,
@@ -50,7 +50,7 @@ fn visuals_tab(ui: &mut Ui, settings: &mut VisualsSettings) {
     ui.checkbox(&mut settings.esp.draw_money, "money");
 }
 
-fn misc_tab(mut ui: &mut Ui, settings: &mut MiscSettings) {
+fn misc_tab(ui: &mut Ui, _settings: &mut MiscSettings) {
     if ui.button("unload").clicked() {
         cheat::unload();
     }

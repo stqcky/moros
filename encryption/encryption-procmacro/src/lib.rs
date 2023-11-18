@@ -4,8 +4,7 @@ use proc_macro2::{Delimiter, TokenStream as TokenStream2};
 use proc_macro2::{Group, Literal, TokenTree};
 use quote::{quote, ToTokens};
 use rand::{rngs::OsRng, RngCore};
-use syn::punctuated::Punctuated;
-use syn::{parse_macro_input, Expr, Lit, Token};
+use syn::{parse_macro_input, Lit};
 
 fn xor(source: &[u8], key: &[u8]) -> Vec<u8> {
     source
@@ -43,7 +42,7 @@ pub fn encrypt(_: TokenStream, tokens: TokenStream) -> TokenStream {
     parse_scope(tokens.into(), false).into()
 }
 
-static FORMAT_ARGS_IDENTIFIERS: &[&'static str] = &[
+static FORMAT_ARGS_IDENTIFIERS: &[&str] = &[
     "print", "println", "format", "error", "info", "trace", "debug", "bail",
 ];
 
@@ -66,7 +65,7 @@ fn parse_scope(token_stream: TokenStream2, mut format_arg_literal: bool) -> Toke
             }
             TokenTree::Literal(literal) => match StringLit::try_from(&literal) {
                 Ok(literal)
-                    if literal.value().len() > 0
+                    if !literal.value().is_empty()
                         && literal.value() != "system"
                         && literal.value() != "fastcall" =>
                 {
@@ -111,10 +110,10 @@ fn encrypt_formatted_group(group: Group) -> TokenStream2 {
 
     let format = format.value();
 
-    let mut args_tokens = stream.skip(1);
+    let args_tokens = stream.skip(1);
     let mut args: Vec<TokenStream2> = vec![];
 
-    while let Some(token) = args_tokens.next() {
+    for token in args_tokens {
         if let Some(last) = args.last_mut() {
             last.extend(token.into_token_stream());
         } else {
@@ -136,7 +135,7 @@ fn encrypt_formatted_group(group: Group) -> TokenStream2 {
 
                 let literal = &format[index..format_start];
 
-                if literal.len() > 0 {
+                if !literal.is_empty() {
                     new_format.push_str("{}");
                     new_args.push(encrypt_literal(literal));
                 }
@@ -146,14 +145,12 @@ fn encrypt_formatted_group(group: Group) -> TokenStream2 {
 
                 if let Some(arg) = args.next() {
                     new_args.push(arg.clone());
-                } else {
-                    if formatted
-                        .chars()
-                        .nth(1)
-                        .is_some_and(|ch| !ch.is_alphabetic())
-                    {
-                        panic!("expected format argument");
-                    }
+                } else if formatted
+                    .chars()
+                    .nth(1)
+                    .is_some_and(|ch| !ch.is_alphabetic())
+                {
+                    panic!("expected format argument");
                 }
 
                 index += format_start + format_end + 1;
@@ -163,7 +160,7 @@ fn encrypt_formatted_group(group: Group) -> TokenStream2 {
         } else {
             let remaining = &format[index..];
 
-            if remaining.len() > 0 {
+            if !remaining.is_empty() {
                 new_format.push_str("{}");
                 new_args.push(encrypt_literal(remaining));
             }

@@ -45,7 +45,7 @@ impl<'a> SchemaSystem<'_> {
 
         let class = type_scope.find_declared_class(class)?;
 
-        let field = class.fields().into_iter().find(|x| x.name() == field)?;
+        let field = class.fields().find(|x| x.name() == field)?;
 
         Some(field.single_inheritance_offset)
     }
@@ -74,7 +74,7 @@ impl<'a> SchemaSystemTypeScope<'a> {
         let mut class_info: *mut SchemaClassInfo = std::ptr::null_mut();
         self.find_declared_class_vfunc(&mut class_info, name);
 
-        Some(unsafe { class_info.as_ref() }?)
+        unsafe { class_info.as_ref() }
     }
 }
 

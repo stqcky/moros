@@ -26,7 +26,7 @@ impl<T> Index<isize> for UtlVector<T> {
     }
 }
 
-impl<'a, T: Copy> UtlVector<T> {
+impl<T: Copy> UtlVector<T> {
     pub fn iter(&self) -> UtlVectorIter<T> {
         UtlVectorIter {
             vector: self,

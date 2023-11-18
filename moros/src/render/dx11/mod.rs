@@ -1,5 +1,4 @@
 use anyhow::Context;
-use egui::{FontData, FontDefinitions, FontFamily, FontId};
 use egui_directx11::DirectX11Renderer;
 use encryption_procmacro::encrypt;
 use parking_lot::Mutex;

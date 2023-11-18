@@ -128,7 +128,7 @@ impl DirectX11Renderer {
 
 impl DirectX11Renderer {
     /// Present call. Should be called once per original present call, before or inside of hook.
-    #[allow(clippy::cast_ref_to_mut)]
+    #[allow(invalid_reference_casting)]
     pub fn paint<PaintFn, State>(
         &mut self,
         swap_chain: &IDXGISwapChain,
@@ -239,7 +239,7 @@ impl DirectX11Renderer {
     fn get_screen_size(&self) -> (f32, f32) {
         let mut rect = RECT::default();
         unsafe {
-            GetClientRect(self.hwnd, &mut rect);
+            GetClientRect(self.hwnd, &mut rect).unwrap();
         }
         (
             (rect.right - rect.left) as f32,

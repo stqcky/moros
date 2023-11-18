@@ -11,7 +11,6 @@ use platform::{
     module::PlatformModule,
     windows::{alloc_console, free_console, message_box, WindowsModule},
 };
-use sdk::interfaces::{client::entity_system::ENTITY_SYSTEM, schema_system::schema_system::SCHEMA_SYSTEM};
 use windows::Win32::UI::WindowsAndMessaging::MB_OK;
 
 use encryption_procmacro::encrypt;

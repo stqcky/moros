@@ -19,7 +19,7 @@ fn add_vmt_field(item: &mut ItemStruct) {
         _ => panic!("#[vmt] can only be applied to structs with named fields"),
     };
 
-    if has_vmt_field(&fields) {
+    if has_vmt_field(fields) {
         panic!("this struct already has a VMT field")
     }
 
@@ -36,8 +36,7 @@ fn has_vmt_field(fields: &FieldsNamed) -> bool {
     fields
         .named
         .iter()
-        .find(|field| field.ident.clone().map_or(false, |ident| ident == "__vmt"))
-        .is_some()
+        .any(|field| field.ident.clone().map_or(false, |ident| ident == "__vmt"))
 }
 
 fn add_repr_c(item: &mut ItemStruct) {

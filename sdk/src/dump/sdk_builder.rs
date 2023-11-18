@@ -43,7 +43,7 @@ impl<'a> Scope<'a> {
 
 impl Display for Scope<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "// scope {}\n", self.name)?;
+        writeln!(f, "// scope {}", self.name)?;
         write!(f, "// {}\n\n", chrono::Utc::now())?;
 
         for enu in self.enums.iter() {
@@ -127,10 +127,10 @@ impl Display for Class<'_> {
         write!(f, "pub struct {} {{", self.rust_name)?;
 
         if self.fields.len() > 0 {
-            write!(f, "\n")?;
+            writeln!(f)?;
 
             for field in self.fields.iter() {
-                write!(f, "{},\n", field)?;
+                writeln!(f, "{},", field)?;
             }
         }
 
@@ -167,10 +167,8 @@ impl<'a> ClassField<'a> {
                     name = stripped.to_string();
                 }
             }
-        } else {
-            if let Some(stripped) = name.strip_prefix("m_") {
-                name = stripped.to_string();
-            }
+        } else if let Some(stripped) = name.strip_prefix("m_") {
+            name = stripped.to_string();
         }
 
         if let Some(stripped) = name.strip_suffix("_t") {
@@ -214,10 +212,7 @@ impl<'a> ClassField<'a> {
             }
             .to_string(),
             TypeCategory::Pointer => {
-                let ty = ty
-                    .value
-                    .schema_type()
-                    .expect("could not get pointer type");
+                let ty = ty.value.schema_type().expect("could not get pointer type");
 
                 format!("*const {}", Self::rustify_type(ty))
             }
@@ -240,7 +235,7 @@ impl<'a> ClassField<'a> {
                     let ty_name = ty.name();
 
                     let (base, _) = ty_name
-                        .split_once("<")
+                        .split_once('<')
                         .expect("could not get template base");
 
                     format!(
@@ -262,13 +257,13 @@ impl<'a> ClassField<'a> {
 
                     let Some((template1, template2)) = atomic_tt.templates() else {
                         log::error!("could not get atomic TT templates");
-                        return "unknown atomic tt".to_string()
+                        return "unknown atomic tt".to_string();
                     };
 
                     let ty_name = ty.name();
 
                     let (base, _) = ty_name
-                        .split_once("<")
+                        .split_once('<')
                         .expect("could not get template base");
 
                     format!(

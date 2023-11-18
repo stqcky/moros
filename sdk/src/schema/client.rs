@@ -12,12 +12,14 @@ use crate::{
         utlstring::UtlString, utlstringtoken::UtlStringToken, utlsymbollarge::UtlSymbolLarge,
         utlvector::UtlVector,
     },
-    types::{EntityIndex, NetworkedQuantizedFloat, SplitScreenSlot, Transform, WorldGroupId},
+    types::{EntityIndex, SplitScreenSlot, Transform, WorldGroupId},
 };
 use glam::Vec3;
 use schema::Schema;
 
-use super::global::{InButtonState, CommandContext, NetworkOriginCellCoordQuantizedVector, LifeState};
+use super::global::{
+    CommandContext, InButtonState, LifeState, NetworkOriginCellCoordQuantizedVector,
+};
 use super::{
     global::{
         AttachmentHandle, AttributeProviderTypes, ClientAlphaProperty, CountdownTimer,
@@ -1694,7 +1696,6 @@ pub struct Sky3Dparams {
     #[field("sky3dparams_t", "m_nWorldGroupID")]
     world_group_id: WorldGroupId,
 }
-
 
 #[derive(Schema)]
 #[scope("client.dll")]

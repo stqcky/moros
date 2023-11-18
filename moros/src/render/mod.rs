@@ -2,9 +2,9 @@ use anyhow::Context;
 use encryption_procmacro::encrypt;
 use platform::windows::find_window;
 
-mod win32;
 mod dx11;
 mod fonts;
+mod win32;
 
 #[encrypt]
 pub fn setup() -> anyhow::Result<()> {

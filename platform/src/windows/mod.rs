@@ -34,8 +34,7 @@ impl PlatformModule for WindowsModule {
         S: AsRef<str>,
     {
         unsafe {
-            GetProcAddress(self.0, win_string!(proc_name.as_ref()))
-                .map(|proc| std::mem::transmute::<_, *const T>(proc))
+            GetProcAddress(self.0, win_string!(proc_name.as_ref())).map(|proc| proc as *const T)
         }
     }
 
@@ -78,11 +77,15 @@ pub fn message_box(header: &str, content: &str, ty: MESSAGEBOX_STYLE) -> MESSAGE
 }
 
 pub fn alloc_console() -> Result<()> {
-    Ok(unsafe { AllocConsole()? })
+    unsafe { AllocConsole()? }
+
+    Ok(())
 }
 
 pub fn free_console() -> Result<()> {
-    Ok(unsafe { FreeConsole()? })
+    unsafe { FreeConsole()? }
+
+    Ok(())
 }
 
 unsafe fn is_main_window(window: HWND) -> bool {

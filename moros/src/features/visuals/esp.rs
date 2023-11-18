@@ -2,10 +2,7 @@ use egui::{Align2, Color32, FontId, Painter, Pos2, Rect, Stroke};
 use glam::{Vec2, Vec3};
 use sdk::{
     interfaces::client::{client::CLIENT, entity_system::ENTITY_SYSTEM},
-    schema::{
-        client::{BaseEntity, GameSceneNode, PlayerController},
-        global::LifeState,
-    },
+    schema::{client::PlayerController, global::LifeState},
 };
 
 use crate::settings::EspSettings;
@@ -92,8 +89,8 @@ impl<'a> EspBuilder<'a> {
     pub fn draw_box(&mut self, painter: &Painter, color: Color32) {
         painter.rect_stroke(
             Rect {
-                min: self.mins,
-                max: self.maxs,
+                min: self.mins + egui::Vec2::new(1.0, 1.0),
+                max: self.maxs - egui::Vec2::new(1.0, 1.0),
             },
             0.0,
             Stroke::new(Self::BOX_SIZE, Color32::BLACK),
@@ -101,24 +98,19 @@ impl<'a> EspBuilder<'a> {
 
         painter.rect_stroke(
             Rect {
-                min: self.mins,
-                max: self.maxs,
+                min: self.mins + egui::Vec2::new(1.0, 1.0),
+                max: self.maxs - egui::Vec2::new(1.0, 1.0),
             },
             0.0,
             Stroke::new(1.0, color),
         );
-
-        self.left_offset += egui::Vec2::new(Self::BOX_SIZE, Self::BOX_SIZE);
-        self.right_offset += egui::Vec2::new(Self::BOX_SIZE, Self::BOX_SIZE);
-
-        self.top_offset += Self::BOX_SIZE;
-        self.bottom_offset += Self::BOX_SIZE;
     }
 
     fn get_font(&self) -> FontId {
-        let mut font = FontId::default();
-        font.size = 10.0;
-        font
+        FontId {
+            size: 1.0,
+            ..Default::default()
+        }
     }
 
     pub fn text_top(&mut self, painter: &Painter, text: impl ToString, color: Color32) {
@@ -133,6 +125,20 @@ impl<'a> EspBuilder<'a> {
         );
 
         self.top_offset += rect.height() + Self::SPACING;
+    }
+
+    pub fn text_bottom(&mut self, painter: &Painter, text: impl ToString, color: Color32) {
+        let center_x = (self.mins.x + self.maxs.x) / 2.0;
+
+        let rect = painter.text(
+            Pos2::new(center_x, self.maxs.y + self.bottom_offset),
+            Align2::CENTER_TOP,
+            text,
+            self.get_font(),
+            color,
+        );
+
+        self.bottom_offset += rect.height() + Self::SPACING;
     }
 
     pub fn text_left(&mut self, painter: &Painter, text: impl ToString, color: Color32) {
@@ -160,12 +166,12 @@ impl<'a> EspBuilder<'a> {
     }
 
     pub fn bar_left(&mut self, painter: &Painter, percentage: f32, color: Color32) {
-        let left = egui::Pos2::new(self.mins.x - self.left_offset.x + 1.0, self.mins.y);
+        let left = egui::Pos2::new(self.mins.x - self.left_offset.x, self.mins.y);
 
         painter.rect_filled(
             Rect {
-                min: left - egui::Vec2::new(Self::BAR_SIZE, 2.0),
-                max: egui::Pos2::new(left.x, self.maxs.y + 1.0),
+                min: left - egui::Vec2::new(Self::BAR_SIZE, 1.0),
+                max: egui::Pos2::new(left.x, self.maxs.y),
             },
             0.0,
             Color32::BLACK,
@@ -175,7 +181,7 @@ impl<'a> EspBuilder<'a> {
 
         painter.vline(
             left.x - 1.0,
-            self.maxs.y - height - 1.0..=self.maxs.y,
+            self.maxs.y - height..=self.maxs.y - 1.0,
             Stroke::new(1.0, color),
         );
 

@@ -18,6 +18,9 @@ windows = "0.51.1"
 thiserror = "1.0.50"
 anyhow = "1.0.75"
 
+[workspace.lints.clippy]
+needless_borrow = "allow"
+
 [profile.release]
 debug = false
 strip = true

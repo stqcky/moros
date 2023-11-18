@@ -15,6 +15,7 @@ pub static INPUT: OnceLock<Mutex<InputManager>> = OnceLock::new();
 
 #[encrypt]
 pub fn setup(window: HWND) -> anyhow::Result<()> {
+    #[allow(clippy::fn_to_numeric_cast)]
     if WNDPROC
         .set(unsafe {
             std::mem::transmute(SetWindowLongPtrA(window, GWLP_WNDPROC, wndproc_hk as isize))
@@ -39,6 +40,7 @@ pub fn destroy() -> anyhow::Result<()> {
         bail!("WNDPROC is not initialized");
     };
 
+    #[allow(clippy::fn_to_numeric_cast)]
     unsafe {
         SetWindowLongPtrA(window, GWLP_WNDPROC, *wndproc as isize);
     };

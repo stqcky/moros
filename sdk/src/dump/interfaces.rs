@@ -34,7 +34,7 @@ pub fn dump() -> anyhow::Result<()> {
         let module_name =
             unsafe { CStr::from_ptr(module_name.as_ptr() as *const i8).to_string_lossy() };
 
-        let base_module_name = module_name.split("\\").last().unwrap_or("unknown module");
+        let base_module_name = module_name.split('\\').last().unwrap_or("unknown module");
 
         for interface in registry {
             log::info!(
@@ -46,7 +46,7 @@ pub fn dump() -> anyhow::Result<()> {
             );
         }
 
-        println!("");
+        println!();
     }
 
     Ok(())
